@@ -43,6 +43,7 @@ jspm_packages
 .env.test.local
 .env.production.local
 
-prisma/dev.db
+# Prisma
+prisma/*.db
+prisma/*.db-journal
 prisma/migrations/
-prisma/dev.db-journal
