@@ -6,7 +6,8 @@ const handler = NextAuth({
   callbacks: {
     ...authOptions.callbacks,
     async redirect({ url, baseUrl }) {
-      if (url.startsWith(baseUrl)) return "/";
+      if (url.startsWith(baseUrl)) return url;
+      else if (url === '/camera') return `${baseUrl}/camera`;
       return baseUrl;
     },
   },
