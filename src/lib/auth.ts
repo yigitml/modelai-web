@@ -2,8 +2,6 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,7 +10,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  pages: { 
+  pages: {
     signIn: "/auth/signin",
     signOut: "/auth/signout",
     error: "/auth/error",
