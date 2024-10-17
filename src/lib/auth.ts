@@ -12,8 +12,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  adapter: PrismaAdapter(prisma),
-  pages: {
+  pages: { 
     signIn: "/auth/signin",
     signOut: "/auth/signout",
     error: "/auth/error",
