@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
+import pgConnectionString from "pg-connection-string";
+
 if (process.env.DATABASE_URL) {
-  const { parse } = require('pg-connection-string');
-  const pgConfig = parse(process.env.DATABASE_URL);
+  const pgConfig = pgConnectionString.parse(process.env.DATABASE_URL);
   process.env.PGHOST = pgConfig.host;
   process.env.PGUSER = pgConfig.user;
   process.env.PGDATABASE = pgConfig.database;
@@ -41,4 +42,3 @@ const nextConfig = {
 };
 
 export default nextConfig;
-
