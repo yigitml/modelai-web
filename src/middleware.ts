@@ -10,12 +10,10 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Allow access to auth-related routes
   if (pathname.startsWith("/auth/")) {
     return NextResponse.next();
   }
 
-  // Redirect authenticated users away from signin page
   if (token && pathname === "/auth/signin") {
     return NextResponse.redirect(new URL("/camera", request.url));
   }

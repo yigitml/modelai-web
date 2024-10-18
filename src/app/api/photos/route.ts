@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     if (id) {
       const photo = await prisma.photo.findUnique({
-        where: { id: parseInt(id) },
+        where: { id: id },
       });
 
       if (photo) {

@@ -35,7 +35,7 @@ export async function POST(request: Request) {
           name: modelDetails.name,
           description: modelDetails.description || "",
           avatarUrl: modelDetails.cover_image_url || null,
-          userId: parseInt(modelDetails.owner.split("/")[1], 10),
+          userId: modelDetails.owner.split("/")[1],
         },
       });
       return NextResponse.json({

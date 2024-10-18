@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     if (id) {
       const user = await prisma.user.findUnique({
-        where: { id: Number(id) },
+        where: { id: id },
       });
 
       if (!user) {

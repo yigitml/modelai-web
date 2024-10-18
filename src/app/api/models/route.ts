@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     if (id) {
       const model = await prisma.model.findUnique({
-        where: { id: Number(id) },
+        where: { id: id },
       });
       if (model) {
         return NextResponse.json(model);
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       }
     } else if (userId) {
       const models = await prisma.model.findMany({
-        where: { userId: Number(userId) },
+        where: { userId: userId },
       });
       return NextResponse.json(models);
     } else {

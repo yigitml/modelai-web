@@ -43,7 +43,6 @@ model User {
   sessions      Session[]
   models        Model[]
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
 }
 
 model VerificationToken {
@@ -55,7 +54,7 @@ model VerificationToken {
 }
 
 model Model {
-  id          Int      @id @default(autoincrement())
+  id          String      @id @default(cuid())
   replicateId String
   versionId   String
   name        String
@@ -68,9 +67,9 @@ model Model {
 }
 
 model Photo {
-  id        Int      @id @default(autoincrement())
+  id        String      @id @default(cuid())
   url       String
   createdAt DateTime @default(now())
   model     Model    @relation(fields: [modelId], references: [id])
-  modelId   Int
+  modelId   String
 }

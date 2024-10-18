@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   googleId: string;
@@ -10,22 +10,22 @@ export interface User {
 }
 
 export interface Model {
-  id: number;
+  id: string;
   replicateId: string;
   versionId: string;
   name: string;
   description: string;
   avatarUrl: string;
   createdAt: string;
-  userId: number;
-  photoIds: number[];
+  userId: string;
+  photos: Photo[];
 }
 
 export interface Photo {
   id: string;
   url: string;
   createdAt: string;
-  modelId: number;
+  modelId: string;
 }
 
 export interface AppState {
