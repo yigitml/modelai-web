@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow access to auth-related routes
-  if (pathname.startsWith('/auth/')) {
+  if (pathname.startsWith("/auth/")) {
     return NextResponse.next();
   }
 
@@ -29,7 +29,10 @@ export async function middleware(request: NextRequest) {
   ];
 
   // Redirect unauthenticated users to signin page
-  if (!token && authenticatedRoutes.some(route => pathname.startsWith(route))) {
+  if (
+    !token &&
+    authenticatedRoutes.some((route) => pathname.startsWith(route))
+  ) {
     const signInUrl = new URL("/auth/signin", request.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signInUrl);
@@ -39,5 +42,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

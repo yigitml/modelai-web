@@ -40,7 +40,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     user: null,
   });
 
-  const { data: userData, refetch: refetchUser } = useQuery({
+  const { data: userData } = useQuery({
     queryKey: ["user", session?.user?.email],
     queryFn: async () => {
       if (!session?.user?.email) {

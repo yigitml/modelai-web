@@ -2,8 +2,8 @@
 
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 function SignInContent() {
   const searchParams = useSearchParams();

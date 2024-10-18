@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
       });
       return NextResponse.json(models);
     } else {
-      return NextResponse.json({ error: "Missing model or user id" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing model or user id" },
+        { status: 400 },
+      );
     }
   } catch (error) {
     console.error("Error fetching models:", error);
