@@ -1,3 +1,14 @@
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  googleId: string;
+  avatarUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  models: Model[];
+}
+
 export interface Model {
   id: number;
   replicateId: string;

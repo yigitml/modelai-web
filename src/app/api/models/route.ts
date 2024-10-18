@@ -1,20 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createModel, getModelById } from "@/lib/replicate";
+import { createModel } from "@/lib/replicate";
+import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
+  const userId = searchParams.get("userId");
 
   try {
     if (id) {
-      const model = await getModelById(id);
+      const model = await prisma.model.findUnique({
+        where: { id: Number(id) },
+      });
       if (model) {
         return NextResponse.json(model);
       } else {
         return NextResponse.json({ error: "Model not found" }, { status: 404 });
       }
+    } else if (userId) {
+      const models = await prisma.model.findMany({
+        where: { userId: Number(userId) },
+      });
+      return NextResponse.json(models);
     } else {
-      return NextResponse.json({ error: "Missing model id" }, { status: 400 });
+      return NextResponse.json({ error: "Missing model or user id" }, { status: 400 });
     }
   } catch (error) {
     console.error("Error fetching models:", error);

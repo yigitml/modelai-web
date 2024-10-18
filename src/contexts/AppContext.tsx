@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import { useSession } from "next-auth/react";
-import { Model as AppModel, Photo } from "@/types/app";
+import { Model as AppModel, Photo, User } from "@/types/app";
 import { CreatePredictionRequest } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -16,11 +16,7 @@ interface AppState {
   models: AppModel[];
   selectedModel: AppModel | null;
   photos: Photo[];
-  user: {
-    name: string;
-    email: string;
-    image: string;
-  } | null;
+  user: User | null;
 }
 
 interface AppContextType extends AppState {
@@ -44,10 +40,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     user: null,
   });
 
-  const { data: modelsData, refetch: refetchModels } = useQuery({
-    queryKey: ["models"],
+  const { data: userData, refetch: refetchUser } = useQuery({
+    queryKey: ["user", session?.user?.email],
     queryFn: async () => {
-      const response = await fetch("/api/models", {
+      if (!session?.user?.email) {
+        return null;
+      }
+      const response = await fetch("/api/users?email=" + session?.user?.email, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+    enabled: false,
+  });
+
+  const { data: modelsData, refetch: refetchModels } = useQuery({
+    queryKey: ["models", state.user?.id],
+    queryFn: async () => {
+      const response = await fetch("/api/models?userId=" + state.user?.id, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -88,13 +105,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setState((prevState) => ({
         ...prevState,
         user: {
-          name: session.user?.name || "",
-          email: session.user?.email || "",
-          image: session.user?.image || "",
+          id: userData.id,
+          name: userData.name || session.user?.name || "",
+          email: userData.email || session.user?.email || "",
+          googleId: userData.googleId || "",
+          avatarUrl: userData.avatarUrl || session.user?.image || "",
+          createdAt: userData.createdAt || "",
+          updatedAt: userData.updatedAt || "",
+          models: userData.models || [],
         },
       }));
     }
-  }, [session, status]);
+  }, [session, status, userData]);
 
   const setSelectedModel = (model: AppModel) => {
     setState((prevState) => ({ ...prevState, selectedModel: model }));
