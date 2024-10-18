@@ -25,7 +25,11 @@ export const Header: React.FC = () => {
         </h1>
         <div className="flex items-center space-x-4">
           <Button onClick={toggleTheme} variant="ghost" size="icon">
-            {theme === "dark" ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+            {theme === "dark" ? (
+              <Sun className="h-[1.2rem] w-[1.2rem]" />
+            ) : (
+              <Moon className="h-[1.2rem] w-[1.2rem]" />
+            )}
           </Button>
           {user ? (
             <>
