@@ -206,7 +206,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
     } catch (error) {
       console.error("Error taking photos:", error);
       setState((prevState) => ({
@@ -241,14 +240,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [fetchModels, fetchPhotos]);
 
   useEffect(() => {
-    // Assuming you're using some authentication method that provides the user info
-    const checkUserAuth = async () => {
-      await refetchUser(); // Replace with your actual method to get user info
-      setState((prevState) => ({ ...prevState, user: userData }));
-    };
-
-    checkUserAuth();
-  },);
+    if (status === "authenticated" && session?.user && !userData) {
+      refetchUser();
+    }
+  }, [status, session, userData, refetchUser]);
 
   return (
     <AppContext.Provider
