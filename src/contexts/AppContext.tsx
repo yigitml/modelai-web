@@ -239,12 +239,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     fetchPhotos();
   }, [fetchModels, fetchPhotos]);
 
-  useEffect(() => {
-    if (status === "authenticated" && session?.user && !userData) {
-      refetchUser();
-    }
-  }, [status, session, userData, refetchUser]);
-
   return (
     <AppContext.Provider
       value={{
