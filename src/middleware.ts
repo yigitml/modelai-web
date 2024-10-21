@@ -1,44 +1,61 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+
+// Define your list of routes that require authentication.
+const authenticatedRoutes = [
+  "/camera",
+  "/prompts",
+  "/saved",
+  "/packs",
+  "/deleted",
+  "/db",
+];
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/auth/")) {
+  // Ignore authentication routes
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/db")
+  ) {
     return NextResponse.next();
   }
 
-  if (token && pathname === "/auth/signin") {
+  // Get the auth token from cookies (or other method like headers if needed)
+  const token = request.cookies.get("next-auth.session-token")?.value;
+
+  // Check if the route is an authenticated route.
+  const isAuthenticatedRoute = authenticatedRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
+
+  // If the route requires authentication and no token is found, redirect to login.
+  if (isAuthenticatedRoute && !token) {
+    // Redirect to login page, preserving the original destination as a query parameter for redirect after login.
+    const loginUrl = new URL("/auth/signin", request.url);
+    loginUrl.searchParams.set("redirect", pathname); // Optional: redirect back after login
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // If a token is found but you want to validate it, you can add token validation here:
+  // For example, call a backend API to validate the token or decode a JWT.
+
+  // If the user is already logged in and trying to access public pages like login, redirect them to a protected page.
+  if (pathname.startsWith("/auth") && token) {
+    // Redirect logged-in users away from login/signup pages to a default authenticated page.
     return NextResponse.redirect(new URL("/camera", request.url));
   }
 
-  const authenticatedRoutes = [
-    "/camera",
-    "/prompts",
-    "/saved",
-    "/packs",
-    "/deleted",
-  ];
-
-  // Redirect unauthenticated users to signin page
-  if (
-    !token &&
-    authenticatedRoutes.some((route) => pathname.startsWith(route))
-  ) {
-    const signInUrl = new URL("/auth/signin", request.url);
-    signInUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
+  // Allow the request to proceed if it passes all checks.
   return NextResponse.next();
 }
 
+// Define which routes the middleware should apply to.
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!api/auth|_next/static|_next/image|favicon.ico).*)", // Apply to all except API routes, Next.js internals, and static assets.
+  ],
 };

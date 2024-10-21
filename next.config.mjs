@@ -1,15 +1,4 @@
 /** @type {import('next').NextConfig} */
-import pgConnectionString from "pg-connection-string";
-
-if (process.env.DATABASE_URL) {
-  const pgConfig = pgConnectionString.parse(process.env.DATABASE_URL);
-  process.env.PGHOST = pgConfig.host;
-  process.env.PGUSER = pgConfig.user;
-  process.env.PGDATABASE = pgConfig.database;
-  process.env.PGPASSWORD = pgConfig.password;
-  process.env.PGPORT = pgConfig.port;
-}
-
 const nextConfig = {
   images: {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

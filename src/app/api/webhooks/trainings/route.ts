@@ -42,7 +42,6 @@ export async function POST(request: Request) {
         message: "Training succeeded and model entry created",
       });
     } else if (body.status === "failed" || body.status === "canceled") {
-      console.error(`Training ${trainingId} ${body.status}`);
       return NextResponse.json({ message: `Training ${body.status}` });
     } else {
       return NextResponse.json({ message: "Training still in progress" });

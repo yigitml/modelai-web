@@ -26,7 +26,6 @@ export const ParametersForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedModel) {
-      console.error("No model selected");
       return;
     }
     setIsCreating(true);
@@ -43,7 +42,7 @@ export const ParametersForm: React.FC = () => {
         },
       });
     } catch (error) {
-      console.error("Error creating prediction:", error);
+      console.error("Error taking photos:", error);
     } finally {
       setIsCreating(false);
     }

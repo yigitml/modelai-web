@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { LogOut, LogIn, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useAuth from "@/hooks/useAuth";
@@ -10,12 +10,21 @@ import { useAppContext } from "@/contexts/AppContext";
 
 export const Header: React.FC = () => {
   const { user } = useAppContext();
-  const { signIn, signOut } = useAuth();
+  const { isAuthenticated, signIn, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, [user]);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
+
+  if (!hasMounted) {
+    return null;
+  }
 
   return (
     <header className="flex flex-col w-full">
@@ -31,20 +40,20 @@ export const Header: React.FC = () => {
               <Moon className="h-[1.2rem] w-[1.2rem]" />
             )}
           </Button>
-          {user ? (
+          {isAuthenticated && user ? (
             <>
               <Avatar>
                 <AvatarImage src={user.avatarUrl} alt={user.name} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <span>{user.name}</span>
-              <Button onClick={() => signOut()} variant="outline">
+              <Button onClick={signOut} variant="outline">
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </Button>
             </>
           ) : (
-            <Button onClick={() => signIn()} variant="default">
+            <Button onClick={signIn} variant="default">
               <LogIn className="w-4 h-4 mr-2" />
               Sign In
             </Button>

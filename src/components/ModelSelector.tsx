@@ -7,7 +7,8 @@ import { ChevronDown } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 
 export const ModelSelector: React.FC = () => {
-  const { models, selectedModel, setSelectedModel } = useAppContext();
+  const { models, selectedModel, setSelectedModel, fetchModels } =
+    useAppContext();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -27,13 +28,14 @@ export const ModelSelector: React.FC = () => {
         <div className="relative">
           <div
             className="flex flex-col p-2 border rounded-lg cursor-pointer"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onClick={() => {
+              setIsDropdownOpen(!isDropdownOpen);
+              fetchModels();
+            }}
           >
             <div className="w-full aspect-square mb-2 rounded-md overflow-hidden">
               <Image
-                src={
-                  selectedModel?.avatarUrl ?? "/images/sample_images/defne.webp"
-                }
+                src={selectedModel?.avatarUrl ?? ""}
                 alt={selectedModel?.name ?? "No model selected"}
                 className="w-full h-full object-cover"
                 height={256}

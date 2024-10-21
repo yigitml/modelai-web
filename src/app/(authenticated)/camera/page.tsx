@@ -17,7 +17,7 @@ export default function CameraPage() {
       fetchPhotos();
       fetchedModelRef.current = selectedModel.id.toString();
     }
-  }, [selectedModel, fetchPhotos]);
+  }, [selectedModel, fetchPhotos, photos]);
 
   const images = photos
     .flatMap((photo) => (Array.isArray(photo.url) ? photo.url : [photo.url]))
@@ -31,9 +31,9 @@ export default function CameraPage() {
             <Image
               src={src}
               alt={`Generated image ${index + 1}`}
-              fill={true}
+              fill
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="rounded-lg absolute top-0 left-0 object-cover"
+              className="rounded-lg object-cover"
               priority={index === 0}
             />
           </div>

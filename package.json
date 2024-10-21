@@ -1,6 +1,6 @@
 {
   "name": "modelai-web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,13 +8,14 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "postinstall": "prisma generate && prisma migrate deploy"
+    "postinstall": "prisma migrate deploy && prisma generate"
   },
   "dependencies": {
     "@auth/core": "^0.34.2",
     "@next-auth/prisma-adapter": "^1.0.7",
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^5.21.1",
     "@radix-ui/react-avatar": "^1.1.1",
+    "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-radio-group": "^1.2.1",
     "@radix-ui/react-select": "^2.1.2",
@@ -29,8 +30,6 @@
     "next": "14.2.15",
     "next-auth": "^4.24.8",
     "next-themes": "^0.3.0",
-    "pg": "^8.13.0",
-    "prisma": "^5.20.0",
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.5.3",
@@ -43,6 +42,7 @@
     "eslint": "^8.0.0",
     "eslint-config-next": "14.2.15",
     "prettier": "^3.3.3",
+    "prisma": "^5.21.1",
     "tailwindcss": "^3.4.13",
     "typescript": "^5"
   }

@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
         const prediction = await createPrediction(predictionData);
         return NextResponse.json(prediction);
       } catch (error) {
-        console.error("Error creating prediction:", error);
         if (error instanceof Error) {
           return NextResponse.json({ error: error.message }, { status: 422 });
         } else {
@@ -62,7 +61,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
   } catch (error) {
-    console.error("Error processing prediction request:", error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     } else {

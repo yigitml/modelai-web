@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -42,6 +42,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   models        Model[]
+  photos        Photo[]
   createdAt     DateTime  @default(now())
 }
 
@@ -54,7 +55,7 @@ model VerificationToken {
 }
 
 model Model {
-  id          String      @id @default(cuid())
+  id          String   @id @default(cuid())
   replicateId String
   versionId   String
   name        String
@@ -67,9 +68,11 @@ model Model {
 }
 
 model Photo {
-  id        String      @id @default(cuid())
+  id        String   @id @default(cuid())
   url       String
   createdAt DateTime @default(now())
   model     Model    @relation(fields: [modelId], references: [id])
   modelId   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
 }

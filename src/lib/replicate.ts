@@ -127,11 +127,9 @@ export const cancelPrediction = async (predictionId: string): Promise<void> => {
 };
 
 const handleApiError = (error: unknown, message: string) => {
-  console.error(message);
   if (error instanceof Error) {
-    console.error(`Error: ${error.message}`);
-    console.error(`Stack trace: ${error.stack}`);
+    console.error(message, error.message);
   } else {
-    console.error(`Unknown error: ${error}`);
+    console.error(message, error);
   }
 };

@@ -40,7 +40,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     user: null,
   });
 
-  const { data: userData } = useQuery({
+  const {
+    data: userData,
+    isLoading: isUserLoading,
+    refetch: refetchUser,
+  } = useQuery({
     queryKey: ["user", session?.user?.email],
     queryFn: async () => {
       if (!session?.user?.email) {
@@ -58,7 +62,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       return response.json();
     },
-    enabled: false,
+    enabled: !!session?.user?.email,
   });
 
   const { data: modelsData, refetch: refetchModels } = useQuery({
@@ -79,11 +83,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     enabled: false,
   });
 
-  const { data: photosData, refetch: refetchPhotos } = useQuery({
+  const { data: photosData } = useQuery({
     queryKey: ["photos", state.selectedModel?.id],
     queryFn: async () => {
       const response = await fetch(
-        `/api/photos${state.selectedModel?.id ? `/${state.selectedModel?.id}` : ""}`,
+        `/api/photos?modelId=${state.selectedModel?.id}`,
         {
           method: "GET",
           headers: {
@@ -101,11 +105,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
+    if (
+      status === "authenticated" &&
+      session?.user &&
+      userData &&
+      !isUserLoading
+    ) {
       setState((prevState) => ({
         ...prevState,
         user: {
-          id: userData.id,
+          id: userData.id || "",
           name: userData.name || session.user?.name || "",
           email: userData.email || session.user?.email || "",
           googleId: userData.googleId || "",
@@ -116,7 +125,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       }));
     }
-  }, [session, status, userData]);
+  }, [session, status, userData, isUserLoading]);
 
   const setSelectedModel = (model: AppModel) => {
     setState((prevState) => ({ ...prevState, selectedModel: model }));
@@ -151,21 +160,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         ...prevState,
         models: [...prevState.models, newModel],
       }));
-
-      console.log("Model created successfully:", newModel);
     } catch (error) {
-      console.error("Failed to create model:", error);
+      console.error("Error creating model:", error);
     }
   }, []);
 
   const fetchModels = useCallback(async () => {
     try {
       await refetchModels();
-      const models: AppModel[] = modelsData?.results || [];
-
-      setState((prevState) => ({ ...prevState, models: models }));
+      if (Array.isArray(modelsData)) {
+        setState((prevState) => ({ ...prevState, models: modelsData }));
+      } else {
+        console.error("Unexpected modelsData format:", modelsData);
+        setState((prevState) => ({ ...prevState, models: [] }));
+      }
     } catch (error) {
-      console.error("Failed to fetch models:", error);
+      console.error("Error fetching models:", error);
       setState((prevState) => ({ ...prevState, models: [] }));
     }
   }, [modelsData, refetchModels]);
@@ -197,10 +207,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const predictionData = await response.json();
-      console.log(predictionData);
     } catch (error) {
-      console.error("Failed to take photos:", error);
+      console.error("Error taking photos:", error);
       setState((prevState) => ({
         ...prevState,
       }));
@@ -209,18 +217,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const fetchPhotos = useCallback(async () => {
     try {
-      await refetchPhotos();
-      const allPhotos: Photo[] = photosData?.results || [];
-      setState((prevState) => ({ ...prevState, photos: allPhotos }));
+      if (Array.isArray(photosData)) {
+        setState((prevState) => ({ ...prevState, photos: photosData }));
+      } else if (
+        photosData &&
+        typeof photosData === "object" &&
+        "results" in photosData
+      ) {
+        setState((prevState) => ({ ...prevState, photos: photosData.results }));
+      } else {
+        console.error("Unexpected photosData format:", photosData);
+        setState((prevState) => ({ ...prevState, photos: [] }));
+      }
     } catch (error) {
-      console.error("Failed to fetch photos:", error);
+      console.error("Error fetching photos:", error);
+      setState((prevState) => ({ ...prevState, photos: [] }));
     }
-  }, [photosData, refetchPhotos]);
+  }, [photosData]);
 
   useEffect(() => {
     fetchModels();
     fetchPhotos();
   }, [fetchModels, fetchPhotos]);
+
+  useEffect(() => {
+    // Assuming you're using some authentication method that provides the user info
+    const checkUserAuth = async () => {
+      await refetchUser(); // Replace with your actual method to get user info
+      setState((prevState) => ({ ...prevState, user: userData }));
+    };
+
+    checkUserAuth();
+  },);
 
   return (
     <AppContext.Provider

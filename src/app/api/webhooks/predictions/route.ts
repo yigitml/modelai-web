@@ -33,6 +33,7 @@ export async function POST(request: Request) {
           data: {
             url,
             modelId: model.id,
+            userId: model.userId,
           },
         }),
       );

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createModel } from "@/lib/replicate";
 import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
@@ -40,7 +39,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    const model = await createModel(data);
+    const model = await prisma.model.create({
+      data: {
+        ...data,
+        // Add any default fields or transformations here if needed
+      },
+    });
     return NextResponse.json(model);
   } catch (error) {
     console.error("Error creating model:", error);
