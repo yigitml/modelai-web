@@ -24,8 +24,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get the auth token from cookies (or other method like headers if needed)
-  const token = request.cookies.get("next-auth.session-token")?.value;
+  // Get the auth token from cookies, checking both possible names
+  const token = request.cookies.get('next-auth.session-token')?.value ||
+                request.cookies.get('__Secure-next-auth.session-token')?.value;
 
   // Check if the route is an authenticated route.
   const isAuthenticatedRoute = authenticatedRoutes.some((route) =>
