@@ -105,6 +105,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   useEffect(() => {
+    if (status === "authenticated" && session?.user?.email) {
+      refetchUser();
+    }
+  }, [session, status, refetchUser]);
+
+  useEffect(() => {
     if (
       status === "authenticated" &&
       session?.user &&
@@ -233,11 +239,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setState((prevState) => ({ ...prevState, photos: [] }));
     }
   }, [photosData]);
-
-  useEffect(() => {
-    fetchModels();
-    fetchPhotos();
-  }, [fetchModels, fetchPhotos]);
 
   return (
     <AppContext.Provider

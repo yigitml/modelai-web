@@ -18,6 +18,10 @@ export const Header: React.FC = () => {
     setHasMounted(true);
   }, [user]);
 
+  useEffect(() => {
+    // This will cause the component to re-render when the user changes
+  }, [user]);
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
