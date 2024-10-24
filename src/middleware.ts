@@ -16,11 +16,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Ignore authentication routes
-  if (
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/db")
-  ) {
+  if (pathname.startsWith("/api/auth") || pathname.startsWith("/auth")) {
     return NextResponse.next();
   }
 

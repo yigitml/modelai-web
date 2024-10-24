@@ -33,7 +33,7 @@ export const ParametersForm: React.FC = () => {
       await takePhotos({
         version: selectedModel.versionId,
         input: {
-          prompt: prompt + ", in the style of LUV",
+          prompt: prompt,
           num_outputs: parseInt(photoCount),
           output_format: "jpg",
           guidance_scale: 3.5,

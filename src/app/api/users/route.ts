@@ -23,8 +23,10 @@ export async function GET(request: NextRequest) {
       });
       return NextResponse.json(user);
     } else {
-      const users = await prisma.user.findMany();
-      return NextResponse.json(users);
+      return NextResponse.json(
+        { error: "Missing user id or email" },
+        { status: 400 },
+      );
     }
   } catch (error) {
     console.error("Error fetching user(s):", error);

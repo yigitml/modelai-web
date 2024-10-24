@@ -38,7 +38,7 @@ export default function DbPage() {
   const [newPhoto, setNewPhoto] = useState({
     url: "",
     modelId: "",
-    userId: "", // Add this line
+    userId: "",
   });
 
   useEffect(() => {
@@ -50,7 +50,6 @@ export default function DbPage() {
         }
         const userData: User[] = await usersResponse.json();
 
-        // Fetch models for each user
         const usersWithModels = await Promise.all(
           userData.map(async (user) => {
             const modelsResponse = await fetch(`/api/models?userId=${user.id}`);
@@ -71,8 +70,8 @@ export default function DbPage() {
     fetchUsersAndModels();
   }, []);
 
-  const handleAddModel = (userId: string) => {
-    setNewModel({ ...newModel, userId });
+  const handleAddModel = () => {
+    setNewModel({ ...newModel, userId: "" });
     setIsAddModelDialogOpen(true);
   };
 
@@ -97,7 +96,6 @@ export default function DbPage() {
 
       const createdModel = await response.json();
 
-      // Update the users state to include the new model
       setUsers(
         users.map((user) =>
           user.id === newModel.userId
@@ -120,14 +118,22 @@ export default function DbPage() {
     }
   };
 
-  const handleAddPhoto = (userId: string, modelId: string) => {
-    setNewPhoto({ ...newPhoto, modelId, userId }); // Update this line
+  const handleAddPhoto = () => {
+    setNewPhoto({ url: "", modelId: "", userId: "" });
     setIsAddPhotoDialogOpen(true);
   };
 
   const handlePhotoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setNewPhoto({ ...newPhoto, [name]: value });
+    setNewPhoto((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhotoUserChange = (userId: string) => {
+    setNewPhoto((prev) => ({ ...prev, userId, modelId: "" }));
+  };
+
+  const handlePhotoModelChange = (modelId: string) => {
+    setNewPhoto((prev) => ({ ...prev, modelId }));
   };
 
   const handleSubmitPhoto = async () => {
@@ -144,7 +150,6 @@ export default function DbPage() {
 
       const createdPhoto = await response.json();
 
-      // Update the users state to include the new photo
       setUsers(
         users.map((user) => ({
           ...user,
@@ -157,7 +162,7 @@ export default function DbPage() {
       );
 
       setIsAddPhotoDialogOpen(false);
-      setNewPhoto({ url: "", modelId: "", userId: "" }); // Update this line
+      setNewPhoto({ url: "", modelId: "", userId: "" });
     } catch (error) {
       console.error("Error creating photo:", error);
     }
@@ -179,6 +184,14 @@ export default function DbPage() {
     <AuthenticatedLayout activeTab="Database">
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Database Management</h1>
+        <div className="flex space-x-4 mb-6">
+          <Button onClick={handleAddModel} className="bg-blue-500 hover:bg-blue-600">
+            Add Model
+          </Button>
+          <Button onClick={handleAddPhoto} className="bg-green-500 hover:bg-green-600">
+            Add Photo
+          </Button>
+        </div>
         <h2 className="text-xl font-semibold mb-4">Users</h2>
         {users.length > 0 ? (
           <ul className="space-y-4">
@@ -188,12 +201,6 @@ export default function DbPage() {
                   <h3 className="font-bold">
                     {user.name} - {user.email}
                   </h3>
-                  <button
-                    onClick={() => handleAddModel(user.id)}
-                    className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-                  >
-                    + Model
-                  </button>
                 </div>
                 {user.models && user.models.length > 0 ? (
                   <ul className="ml-4 mt-2 space-y-2">
@@ -201,24 +208,16 @@ export default function DbPage() {
                       <li key={model.id} className="border-l-2 pl-2">
                         <div className="flex justify-between items-center">
                           <h4 className="font-semibold">{model.name}</h4>
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => toggleModelDropdown(model.id)}
-                              className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300 flex items-center"
-                            >
-                              {openModelIds.includes(model.id) ? (
-                                <ChevronUp size={16} />
-                              ) : (
-                                <ChevronDown size={16} />
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleAddPhoto(user.id, model.id)}
-                              className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
-                            >
-                              + Photo
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => toggleModelDropdown(model.id)}
+                            className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300 flex items-center"
+                          >
+                            {openModelIds.includes(model.id) ? (
+                              <ChevronUp size={16} />
+                            ) : (
+                              <ChevronDown size={16} />
+                            )}
+                          </button>
                         </div>
                         {openModelIds.includes(model.id) && (
                           <div className="mt-2 ml-2 text-sm">
@@ -227,19 +226,19 @@ export default function DbPage() {
                             </p>
                             <p>
                               <strong>Replicate ID:</strong>{" "}
-                              {model.replicateId || "N/A"}
+                              {model.replicateId || ""}
                             </p>
                             <p>
                               <strong>Version ID:</strong>{" "}
-                              {model.versionId || "N/A"}
+                              {model.versionId || ""}
                             </p>
                             <p>
                               <strong>Description:</strong>{" "}
-                              {model.description || "N/A"}
+                              {model.description || ""}
                             </p>
                             <p>
                               <strong>Avatar URL:</strong>{" "}
-                              {model.avatarUrl || "N/A"}
+                              {model.avatarUrl || ""}
                             </p>
                             <p>
                               <strong>Created At:</strong>{" "}
@@ -342,6 +341,30 @@ export default function DbPage() {
             <DialogTitle>Add New Photo</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <Select onValueChange={handlePhotoUserChange} value={newPhoto.userId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select User" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select onValueChange={handlePhotoModelChange} value={newPhoto.modelId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Model" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.find(u => u.id === newPhoto.userId)?.models?.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               name="url"
               placeholder="Photo URL"
