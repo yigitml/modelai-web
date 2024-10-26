@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const id = searchParams.get("id");
   const modelId = searchParams.get("modelId");
+  const userId = searchParams.get("userId");
 
   try {
     if (id) {
@@ -20,6 +21,11 @@ export async function GET(request: NextRequest) {
     } else if (modelId) {
       const photos = await prisma.photo.findMany({
         where: { modelId: modelId },
+      });
+      return NextResponse.json(photos);
+    } else if (userId) {
+      const photos = await prisma.photo.findMany({
+        where: { userId: userId },
       });
       return NextResponse.json(photos);
     } else {
@@ -50,6 +56,29 @@ export async function POST(request: NextRequest) {
     console.error("Error creating photo:", error);
     return NextResponse.json(
       { error: "Failed to create photo" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { id, ...updateData } = await request.json();
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing photo id" }, { status: 400 });
+    }
+
+    const updatedPhoto = await prisma.photo.update({
+      where: { id: id },
+      data: updateData,
+    });
+
+    return NextResponse.json(updatedPhoto);
+  } catch (error) {
+    console.error("Error updating photo:", error);
+    return NextResponse.json(
+      { error: "Failed to update photo" },
       { status: 500 },
     );
   }

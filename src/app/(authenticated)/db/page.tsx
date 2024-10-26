@@ -1,5 +1,6 @@
 "use client";
 
+import { Model, Photo } from "@/types/app";
 import React, { useState, useEffect } from "react";
 import { AuthenticatedLayout } from "../../../components/layout/AuthenticatedLayout";
 import { User } from "@/types/app";
@@ -13,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -40,6 +41,12 @@ export default function DbPage() {
     modelId: "",
     userId: "",
   });
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [isEditModelDialogOpen, setIsEditModelDialogOpen] = useState(false);
+  const [isEditPhotoDialogOpen, setIsEditPhotoDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingModel, setEditingModel] = useState<Model | null>(null);
+  const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
 
   useEffect(() => {
     const fetchUsersAndModels = async () => {
@@ -180,15 +187,110 @@ export default function DbPage() {
     );
   };
 
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsEditUserDialogOpen(true);
+  };
+
+  const handleEditModel = (model: Model) => {
+    setEditingModel(model);
+    setIsEditModelDialogOpen(true);
+  };
+
+  const handleEditPhoto = (photo: Photo) => {
+    setEditingPhoto(photo);
+    setIsEditPhotoDialogOpen(true);
+  };
+
+  const handleSubmitUserEdit = async () => {
+    if (!editingUser) return;
+    try {
+      const response = await fetch(`/api/users?id=${editingUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingUser),
+      });
+
+      if (!response.ok) throw new Error("Failed to update user");
+
+      const updatedUser = await response.json();
+      setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+      setIsEditUserDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+
+  const handleSubmitModelEdit = async () => {
+    if (!editingModel) return;
+    try {
+      const response = await fetch(`/api/models?id=${editingModel.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingModel),
+      });
+
+      if (!response.ok) throw new Error("Failed to update model");
+
+      const updatedModel = await response.json();
+      setUsers(
+        users.map((user) => ({
+          ...user,
+          models: user.models?.map((m) =>
+            m.id === updatedModel.id ? updatedModel : m,
+          ),
+        })),
+      );
+      setIsEditModelDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating model:", error);
+    }
+  };
+
+  const handleSubmitPhotoEdit = async () => {
+    if (!editingPhoto) return;
+    try {
+      const response = await fetch(`/api/photos`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingPhoto),
+      });
+
+      if (!response.ok) throw new Error("Failed to update photo");
+
+      const updatedPhoto = await response.json();
+      setUsers(
+        users.map((user) => ({
+          ...user,
+          models: user.models?.map((model) => ({
+            ...model,
+            photos: model.photos?.map((p) =>
+              p.id === updatedPhoto.id ? updatedPhoto : p,
+            ),
+          })),
+        })),
+      );
+      setIsEditPhotoDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating photo:", error);
+    }
+  };
+
   return (
     <AuthenticatedLayout activeTab="Database">
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Database Management</h1>
         <div className="flex space-x-4 mb-6">
-          <Button onClick={handleAddModel} className="bg-blue-500 hover:bg-blue-600">
+          <Button
+            onClick={handleAddModel}
+            className="bg-blue-500 hover:bg-blue-600"
+          >
             Add Model
           </Button>
-          <Button onClick={handleAddPhoto} className="bg-green-500 hover:bg-green-600">
+          <Button
+            onClick={handleAddPhoto}
+            className="bg-green-500 hover:bg-green-600"
+          >
             Add Photo
           </Button>
         </div>
@@ -201,6 +303,9 @@ export default function DbPage() {
                   <h3 className="font-bold">
                     {user.name} - {user.email}
                   </h3>
+                  <Button onClick={() => handleEditUser(user)} size="sm">
+                    <Pencil size={16} className="mr-2" /> Edit User
+                  </Button>
                 </div>
                 {user.models && user.models.length > 0 ? (
                   <ul className="ml-4 mt-2 space-y-2">
@@ -208,16 +313,25 @@ export default function DbPage() {
                       <li key={model.id} className="border-l-2 pl-2">
                         <div className="flex justify-between items-center">
                           <h4 className="font-semibold">{model.name}</h4>
-                          <button
-                            onClick={() => toggleModelDropdown(model.id)}
-                            className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300 flex items-center"
-                          >
-                            {openModelIds.includes(model.id) ? (
-                              <ChevronUp size={16} />
-                            ) : (
-                              <ChevronDown size={16} />
-                            )}
-                          </button>
+                          <div>
+                            <Button
+                              onClick={() => handleEditModel(model)}
+                              size="sm"
+                              className="mr-2"
+                            >
+                              <Pencil size={16} className="mr-2" /> Edit Model
+                            </Button>
+                            <button
+                              onClick={() => toggleModelDropdown(model.id)}
+                              className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300 flex items-center"
+                            >
+                              {openModelIds.includes(model.id) ? (
+                                <ChevronUp size={16} />
+                              ) : (
+                                <ChevronDown size={16} />
+                              )}
+                            </button>
+                          </div>
                         </div>
                         {openModelIds.includes(model.id) && (
                           <div className="mt-2 ml-2 text-sm">
@@ -252,8 +366,18 @@ export default function DbPage() {
                         {model.photos && model.photos.length > 0 ? (
                           <ul className="ml-4 mt-1">
                             {model.photos.map((photo) => (
-                              <li key={photo.id} className="text-sm">
-                                {photo.url}
+                              <li
+                                key={photo.id}
+                                className="text-sm flex justify-between items-center"
+                              >
+                                <span>{photo.url}</span>
+                                <Button
+                                  onClick={() => handleEditPhoto(photo)}
+                                  size="sm"
+                                >
+                                  <Pencil size={16} className="mr-2" /> Edit
+                                  Photo
+                                </Button>
                               </li>
                             ))}
                           </ul>
@@ -341,7 +465,10 @@ export default function DbPage() {
             <DialogTitle>Add New Photo</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Select onValueChange={handlePhotoUserChange} value={newPhoto.userId}>
+            <Select
+              onValueChange={handlePhotoUserChange}
+              value={newPhoto.userId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select User" />
               </SelectTrigger>
@@ -353,16 +480,21 @@ export default function DbPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select onValueChange={handlePhotoModelChange} value={newPhoto.modelId}>
+            <Select
+              onValueChange={handlePhotoModelChange}
+              value={newPhoto.modelId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Model" />
               </SelectTrigger>
               <SelectContent>
-                {users.find(u => u.id === newPhoto.userId)?.models?.map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    {model.name}
-                  </SelectItem>
-                ))}
+                {users
+                  .find((u) => u.id === newPhoto.userId)
+                  ?.models?.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             <Input
@@ -374,6 +506,200 @@ export default function DbPage() {
           </div>
           <DialogFooter>
             <Button onClick={handleSubmitPhoto}>Add Photo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={isEditUserDialogOpen}
+        onOpenChange={setIsEditUserDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              name="name"
+              placeholder="Name"
+              value={editingUser?.name || ""}
+              onChange={(e) =>
+                setEditingUser((prev) =>
+                  prev ? { ...prev, name: e.target.value } : null,
+                )
+              }
+            />
+            <Input
+              name="email"
+              placeholder="Email"
+              value={editingUser?.email || ""}
+              onChange={(e) =>
+                setEditingUser((prev) =>
+                  prev ? { ...prev, email: e.target.value } : null,
+                )
+              }
+            />
+            <Input
+              name="avatarUrl"
+              placeholder="Avatar URL"
+              value={editingUser?.avatarUrl || ""}
+              onChange={(e) =>
+                setEditingUser((prev) =>
+                  prev ? { ...prev, avatarUrl: e.target.value } : null,
+                )
+              }
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSubmitUserEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={isEditModelDialogOpen}
+        onOpenChange={setIsEditModelDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Model</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              name="name"
+              placeholder="Model Name"
+              value={editingModel?.name || ""}
+              onChange={(e) =>
+                setEditingModel((prev) =>
+                  prev ? { ...prev, name: e.target.value } : null,
+                )
+              }
+            />
+            <Input
+              name="replicateId"
+              placeholder="Replicate ID"
+              value={editingModel?.replicateId || ""}
+              onChange={(e) =>
+                setEditingModel((prev) =>
+                  prev ? { ...prev, replicateId: e.target.value } : null,
+                )
+              }
+            />
+            <Input
+              name="versionId"
+              placeholder="Version ID"
+              value={editingModel?.versionId || ""}
+              onChange={(e) =>
+                setEditingModel((prev) =>
+                  prev ? { ...prev, versionId: e.target.value } : null,
+                )
+              }
+            />
+            <Textarea
+              name="description"
+              placeholder="Description"
+              value={editingModel?.description || ""}
+              onChange={(e) =>
+                setEditingModel((prev) =>
+                  prev ? { ...prev, description: e.target.value } : null,
+                )
+              }
+            />
+            <Input
+              name="avatarUrl"
+              placeholder="Avatar URL"
+              value={editingModel?.avatarUrl || ""}
+              onChange={(e) =>
+                setEditingModel((prev) =>
+                  prev ? { ...prev, avatarUrl: e.target.value } : null,
+                )
+              }
+            />
+            <Select
+              onValueChange={(value) =>
+                setEditingModel((prev) =>
+                  prev ? { ...prev, userId: value } : null,
+                )
+              }
+              value={editingModel?.userId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select User" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSubmitModelEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={isEditPhotoDialogOpen}
+        onOpenChange={setIsEditPhotoDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Photo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              name="url"
+              placeholder="Photo URL"
+              value={editingPhoto?.url || ""}
+              onChange={(e) =>
+                setEditingPhoto((prev) =>
+                  prev ? { ...prev, url: e.target.value } : null,
+                )
+              }
+            />
+            <Select
+              onValueChange={(value) =>
+                setEditingPhoto((prev) =>
+                  prev ? { ...prev, modelId: value } : null,
+                )
+              }
+              value={editingPhoto?.modelId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Model" />
+              </SelectTrigger>
+              <SelectContent>
+                {users
+                  .flatMap((user) => user.models || [])
+                  .map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            <Select
+              onValueChange={(value) =>
+                setEditingPhoto((prev) =>
+                  prev ? { ...prev, userId: value } : null,
+                )
+              }
+              value={editingPhoto?.modelId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select User" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSubmitPhotoEdit}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

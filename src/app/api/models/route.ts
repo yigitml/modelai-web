@@ -54,3 +54,31 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing model id" }, { status: 400 });
+    }
+
+    const data = await request.json();
+    const updatedModel = await prisma.model.update({
+      where: { id: id },
+      data: {
+        ...data,
+        // Add any field validations or transformations here if needed
+      },
+    });
+
+    return NextResponse.json(updatedModel);
+  } catch (error) {
+    console.error("Error updating model:", error);
+    return NextResponse.json(
+      { error: "Failed to update model" },
+      { status: 500 },
+    );
+  }
+}
