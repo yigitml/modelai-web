@@ -11,7 +11,6 @@ import { useSession } from "next-auth/react";
 import { Model as AppModel, Photo, User } from "@/types/app";
 import { CreatePredictionRequest } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 
 interface AppState {
   models: AppModel[];
@@ -124,11 +123,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         console.error("No ID token available in the session");
         return;
       }
-      const response = await axios.post("/api/auth/token", {
-        idToken: session.idToken,
+      const response = await fetch("/api/auth/token/web", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idToken: session.idToken,
+        }),
       });
-      const jwtToken = response.data.token;
-      setJwtToken(jwtToken);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setJwtToken(data.token);
     } catch (error) {
       console.error("Error fetching JWT token:", error);
     }

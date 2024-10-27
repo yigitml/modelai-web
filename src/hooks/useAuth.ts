@@ -11,7 +11,7 @@ const useAuth = () => {
   const signIn = async (provider: string, options?: SignInOptions) => {
     const result = await nextAuthSignIn(provider, options);
     if (result?.ok) {
-      const tokenResponse = await fetch("/api/auth/token", {
+      const tokenResponse = await fetch("/api/auth/token/web", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider }),

@@ -53,9 +53,18 @@ export const PUT = jwtAuth(async (request: NextRequest) => {
 
     const body = await request.json();
 
+    // Remove relation fields and readonly fields
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {
+      models: _models,
+      id: _userId,
+      createdAt: _createdAt,
+      ...updateData
+    } = body;
+
     const updatedUser = await prisma.user.update({
       where: { id },
-      data: body,
+      data: updateData,
     });
 
     return NextResponse.json(updatedUser);

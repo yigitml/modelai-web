@@ -2,7 +2,6 @@
 
 import { Model, Photo } from "@/types/app";
 import React, { useState, useEffect } from "react";
-import { AuthenticatedLayout } from "../../../components/layout/AuthenticatedLayout";
 import { User } from "@/types/app";
 import {
   Dialog,
@@ -242,7 +241,10 @@ export default function DbPage() {
     try {
       const response = await fetch(`/api/users?id=${editingUser.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwtToken}`, // Add this line
+        },
         body: JSON.stringify(editingUser),
       });
 
@@ -375,19 +377,19 @@ export default function DbPage() {
   };
 
   return (
-    <AuthenticatedLayout activeTab="Database">
-      <div className="p-6">
+    <>
+      <div className="p-6 bg-background min-h-screen">
         <h1 className="text-2xl font-bold mb-6">Database Management</h1>
         <div className="flex space-x-4 mb-6">
           <Button
             onClick={handleAddModel}
-            className="bg-blue-500 hover:bg-blue-600"
+            className="bg-blue-500 hover:bg-blue-600 text-white"
           >
             Add Model
           </Button>
           <Button
             onClick={handleAddPhoto}
-            className="bg-green-500 hover:bg-green-600"
+            className="bg-green-500 hover:bg-green-600 text-white"
           >
             Add Photo
           </Button>
@@ -402,6 +404,7 @@ export default function DbPage() {
                     <Button
                       onClick={() => handleEditUser(user)}
                       size="sm"
+                      variant="outline"
                       className="mr-2"
                     >
                       <Pencil size={16} />
@@ -427,6 +430,7 @@ export default function DbPage() {
                             <Button
                               onClick={() => handleEditModel(model)}
                               size="sm"
+                              variant="outline"
                               className="mr-2"
                             >
                               <Pencil size={16} />
@@ -492,6 +496,7 @@ export default function DbPage() {
                                   <Button
                                     onClick={() => handleEditPhoto(photo)}
                                     size="sm"
+                                    variant="outline"
                                     className="mr-2"
                                   >
                                     <Pencil size={16} />
@@ -658,16 +663,6 @@ export default function DbPage() {
               }
             />
             <Input
-              name="email"
-              placeholder="Email"
-              value={editingUser?.email || ""}
-              onChange={(e) =>
-                setEditingUser((prev) =>
-                  prev ? { ...prev, email: e.target.value } : null,
-                )
-              }
-            />
-            <Input
               name="avatarUrl"
               placeholder="Avatar URL"
               value={editingUser?.avatarUrl || ""}
@@ -792,6 +787,6 @@ export default function DbPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AuthenticatedLayout>
+    </>
   );
 }
