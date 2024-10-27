@@ -82,3 +82,26 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing model id" }, { status: 400 });
+    }
+
+    await prisma.model.delete({
+      where: { id: id },
+    });
+
+    return NextResponse.json({ message: "Model deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting model:", error);
+    return NextResponse.json(
+      { error: "Failed to delete model" },
+      { status: 500 },
+    );
+  }
+}

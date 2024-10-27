@@ -83,3 +83,26 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing photo id" }, { status: 400 });
+    }
+
+    await prisma.photo.delete({
+      where: { id: id },
+    });
+
+    return NextResponse.json({ message: "Photo deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting photo:", error);
+    return NextResponse.json(
+      { error: "Failed to delete photo" },
+      { status: 500 },
+    );
+  }
+}

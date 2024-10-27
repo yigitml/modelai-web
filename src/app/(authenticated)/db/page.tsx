@@ -302,7 +302,6 @@ export default function DbPage() {
   };
 
   const handleDeleteModel = async (modelId: string) => {
-    if (!confirm("Are you sure you want to delete this model?")) return;
     try {
       const response = await fetch(`/api/models?id=${modelId}`, {
         method: "DELETE",
@@ -320,7 +319,6 @@ export default function DbPage() {
   };
 
   const handleDeletePhoto = async (photoId: string, modelId: string) => {
-    if (!confirm("Are you sure you want to delete this photo?")) return;
     try {
       const response = await fetch(`/api/photos?id=${photoId}`, {
         method: "DELETE",
