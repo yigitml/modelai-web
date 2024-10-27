@@ -5,8 +5,9 @@ import {
   createPrediction,
 } from "@/lib/replicate";
 import type { CreatePredictionRequest } from "@/types/api";
+import { jwtAuth } from "@/middleware/jwtAuth";
 
-export async function GET(request: NextRequest) {
+export const GET = jwtAuth(async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
   const id = searchParams.get("id");
 
@@ -27,9 +28,9 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = jwtAuth(async (request: NextRequest) => {
   try {
     const body = await request.json();
 
@@ -70,4 +71,4 @@ export async function POST(request: NextRequest) {
       );
     }
   }
-}
+});

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadFile } from "@/lib/replicate";
-
-export async function POST(request: NextRequest) {
+import { jwtAuth } from "@/middleware/jwtAuth";
+export const POST = jwtAuth(async (request: NextRequest) => {
   try {
     const formData = await request.formData();
     const file = await uploadFile(formData);
@@ -13,4 +13,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

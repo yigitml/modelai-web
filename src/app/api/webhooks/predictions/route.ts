@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { getPredictionById } from "@/lib/replicate";
 import prisma from "@/lib/prisma";
+import { verifyWebhookSignature } from "@/utils/webhookVerification";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const signature = request.headers.get("replicate-signature");
+
+    if (!verifyWebhookSignature(JSON.stringify(body), signature)) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
+
     const predictionId = body.id;
 
     if (!predictionId) {

@@ -11,20 +11,24 @@ import { useSession } from "next-auth/react";
 import { Model as AppModel, Photo, User } from "@/types/app";
 import { CreatePredictionRequest } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 interface AppState {
   models: AppModel[];
   selectedModel: AppModel | null;
   photos: Photo[];
   user: User | null;
+  jwtToken: string | null;
 }
 
 interface AppContextType extends AppState {
+  setJwtToken: (token: string | null) => void;
   setSelectedModel: (model: AppModel) => void;
   createModel: () => Promise<void>;
   fetchModels: () => Promise<void>;
   takePhotos: (data: CreatePredictionRequest) => Promise<void>;
   fetchPhotos: () => Promise<void>;
+  fetchUser: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -38,13 +42,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     selectedModel: null,
     photos: [],
     user: null,
+    jwtToken: null,
   });
 
-  const {
-    data: userData,
-    isLoading: isUserLoading,
-    refetch: refetchUser,
-  } = useQuery({
+  const setJwtToken = (token: string | null) => {
+    setState((prevState) => ({ ...prevState, jwtToken: token }));
+  };
+
+  const { data: userData, isLoading: isUserLoading } = useQuery({
     queryKey: ["user", session?.user?.email],
     queryFn: async () => {
       if (!session?.user?.email) {
@@ -55,6 +60,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${state.jwtToken}`,
         },
       });
       if (!response.ok) {
@@ -73,6 +79,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${state.jwtToken}`,
         },
       });
       if (!response.ok) {
@@ -93,6 +100,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
+            Authorization: `Bearer ${state.jwtToken}`,
           },
         },
       );
@@ -106,9 +114,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
-      refetchUser();
+      fetchJwtToken();
     }
-  }, [session, status, refetchUser]);
+  }, [session, status]);
+
+  const fetchJwtToken = async () => {
+    try {
+      if (!session?.idToken) {
+        console.error("No ID token available in the session");
+        return;
+      }
+      const response = await axios.post("/api/auth/token", {
+        idToken: session.idToken,
+      });
+      const jwtToken = response.data.token;
+      setJwtToken(jwtToken);
+    } catch (error) {
+      console.error("Error fetching JWT token:", error);
+    }
+  };
 
   useEffect(() => {
     if (
@@ -145,6 +169,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${state.jwtToken}`,
         },
         body: JSON.stringify({
           owner: process.env.NEXT_PUBLIC_REPLICATE_MODEL_OWNER,
@@ -199,6 +224,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${state.jwtToken}`,
         },
         body: JSON.stringify({
           action: "create",
@@ -240,10 +266,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [photosData]);
 
+  const fetchUser = useCallback(async () => {
+    if (state.jwtToken) {
+      const response = await fetch("/api/users?email=" + session?.user?.email, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${state.jwtToken}`,
+        },
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setState((prevState) => ({ ...prevState, user: userData }));
+      }
+    }
+  }, [state.jwtToken]);
+
   return (
     <AppContext.Provider
       value={{
         ...state,
+        setJwtToken,
+        fetchUser,
         setSelectedModel,
         createModel,
         fetchModels,

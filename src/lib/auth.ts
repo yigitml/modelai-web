@@ -1,6 +1,5 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import prisma from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -8,6 +7,13 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
   ],
   pages: {
@@ -21,40 +27,27 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      if (user.email && account?.providerAccountId) {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-        if (!existingUser) {
-          await prisma.user.create({
-            data: {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              googleId: account.providerAccountId as string,
-            },
-          });
-        }
+    async signIn({ account }) {
+      if (account?.providerAccountId) {
         return true;
+      } else {
+        return false;
       }
-      return false;
     },
-    async session({ session }) {
-      const dbUser = await prisma.user.findUnique({
-        where: { email: session.user?.email as string },
-      });
-      if (dbUser) {
-        session.user = dbUser;
+    async session({ session, token }) {
+      if (token.idToken) {
+        session.idToken = token.idToken;
       }
       return session;
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
+    async jwt({ token, account }) {
+      if (account) {
+        token.idToken = account.id_token;
       }
       return token;
     },
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET,
   },
 };

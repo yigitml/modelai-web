@@ -10,7 +10,7 @@ import { useAppContext } from "@/contexts/AppContext";
 
 export const Header: React.FC = () => {
   const { user } = useAppContext();
-  const { isAuthenticated, signIn, signOut } = useAuth();
+  const { signIn, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -44,7 +44,7 @@ export const Header: React.FC = () => {
               <Moon className="h-[1.2rem] w-[1.2rem]" />
             )}
           </Button>
-          {isAuthenticated && user ? (
+          {user ? (
             <>
               <Avatar>
                 <AvatarImage src={user.avatarUrl} alt={user.name} />
@@ -57,7 +57,7 @@ export const Header: React.FC = () => {
               </Button>
             </>
           ) : (
-            <Button onClick={signIn} variant="default">
+            <Button onClick={() => signIn("google")} variant="default">
               <LogIn className="w-4 h-4 mr-2" />
               Sign In
             </Button>

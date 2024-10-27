@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { jwtAuth } from "@/middleware/jwtAuth";
 
-export async function GET(request: NextRequest) {
+export const GET = jwtAuth(async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
   const id = searchParams.get("id");
   const modelId = searchParams.get("modelId");
@@ -41,9 +42,9 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = jwtAuth(async (request: NextRequest) => {
   try {
     const photoData = await request.json();
 
@@ -59,9 +60,9 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
 
-export async function PUT(request: NextRequest) {
+export const PUT = jwtAuth(async (request: NextRequest) => {
   try {
     const { id, ...updateData } = await request.json();
 
@@ -82,9 +83,9 @@ export async function PUT(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = jwtAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -105,4 +106,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

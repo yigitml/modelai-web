@@ -22,8 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppContext } from "@/contexts/AppContext";
 
 export default function DbPage() {
+  const { jwtToken } = useAppContext();
   const [users, setUsers] = useState<User[]>([]);
   const [isAddModelDialogOpen, setIsAddModelDialogOpen] = useState(false);
   const [newModel, setNewModel] = useState({
@@ -49,45 +51,60 @@ export default function DbPage() {
   const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
 
   useEffect(() => {
-    const fetchUsersAndModels = async () => {
-      try {
-        const usersResponse = await fetch("/api/users");
-        if (!usersResponse.ok) {
-          throw new Error("Failed to fetch users");
-        }
-        const userData: User[] = await usersResponse.json();
+    if (jwtToken) {
+      fetchUsersAndModels();
+    }
+  }, [jwtToken]);
 
-        const usersWithModelsAndPhotos = await Promise.all(
-          userData.map(async (user) => {
-            const modelsResponse = await fetch(`/api/models?userId=${user.id}`);
-            if (modelsResponse.ok) {
-              const models: Model[] = await modelsResponse.json();
-              const modelsWithPhotos = await Promise.all(
-                models.map(async (model) => {
-                  const photosResponse = await fetch(
-                    `/api/photos?modelId=${model.id}`,
-                  );
-                  if (photosResponse.ok) {
-                    const photos: Photo[] = await photosResponse.json();
-                    return { ...model, photos };
-                  }
-                  return model;
-                }),
-              );
-              return { ...user, models: modelsWithPhotos };
-            }
-            return user;
-          }),
-        );
-
-        setUsers(usersWithModelsAndPhotos);
-      } catch (error) {
-        console.error("Error fetching users, models, and photos:", error);
+  const fetchUsersAndModels = async () => {
+    try {
+      const usersResponse = await fetch("/api/users", {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      });
+      if (!usersResponse.ok) {
+        throw new Error("Failed to fetch users");
       }
-    };
+      const userData: User[] = await usersResponse.json();
 
-    fetchUsersAndModels();
-  }, []);
+      const usersWithModelsAndPhotos = await Promise.all(
+        userData.map(async (user) => {
+          const modelsResponse = await fetch(`/api/models?userId=${user.id}`, {
+            headers: {
+              Authorization: `Bearer ${jwtToken}`,
+            },
+          });
+          if (modelsResponse.ok) {
+            const models: Model[] = await modelsResponse.json();
+            const modelsWithPhotos = await Promise.all(
+              models.map(async (model) => {
+                const photosResponse = await fetch(
+                  `/api/photos?modelId=${model.id}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${jwtToken}`,
+                    },
+                  },
+                );
+                if (photosResponse.ok) {
+                  const photos: Photo[] = await photosResponse.json();
+                  return { ...model, photos };
+                }
+                return model;
+              }),
+            );
+            return { ...user, models: modelsWithPhotos };
+          }
+          return user;
+        }),
+      );
+
+      setUsers(usersWithModelsAndPhotos);
+    } catch (error) {
+      console.error("Error fetching users, models, and photos:", error);
+    }
+  };
 
   const handleAddModel = () => {
     setNewModel({ ...newModel, userId: "" });
@@ -105,7 +122,10 @@ export default function DbPage() {
     try {
       const response = await fetch("/api/models", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwtToken}`,
+        },
         body: JSON.stringify(newModel),
       });
 
@@ -159,7 +179,10 @@ export default function DbPage() {
     try {
       const response = await fetch("/api/photos", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwtToken}`,
+        },
         body: JSON.stringify(newPhoto),
       });
 
@@ -293,6 +316,9 @@ export default function DbPage() {
     try {
       const response = await fetch(`/api/users?id=${userId}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
       });
       if (!response.ok) throw new Error("Failed to delete user");
       setUsers(users.filter((user) => user.id !== userId));
@@ -305,6 +331,9 @@ export default function DbPage() {
     try {
       const response = await fetch(`/api/models?id=${modelId}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
       });
       if (!response.ok) throw new Error("Failed to delete model");
       setUsers(
@@ -322,6 +351,9 @@ export default function DbPage() {
     try {
       const response = await fetch(`/api/photos?id=${photoId}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
       });
       if (!response.ok) throw new Error("Failed to delete photo");
       setUsers(
@@ -365,49 +397,41 @@ export default function DbPage() {
           <ul className="space-y-4">
             {users.map((user) => (
               <li key={user.id} className="border p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold">
-                    {user.name} - {user.email}
-                  </h3>
-                  <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
                     <Button
                       onClick={() => handleEditUser(user)}
                       size="sm"
                       className="mr-2"
                     >
-                      <Pencil size={16} className="mr-2" />
+                      <Pencil size={16} />
                     </Button>
-                    <Button
-                      onClick={() => handleDeleteUser(user.id)}
-                      size="sm"
-                      variant="destructive"
-                    >
-                      <Trash2 size={16} className="mr-2" />
-                    </Button>
+                    <h3 className="font-bold">
+                      {user.name} - {user.email}
+                    </h3>
                   </div>
+                  <Button
+                    onClick={() => handleDeleteUser(user.id)}
+                    size="sm"
+                    variant="destructive"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
                 </div>
                 {user.models && user.models.length > 0 ? (
                   <ul className="ml-4 mt-2 space-y-2">
                     {user.models.map((model) => (
                       <li key={model.id} className="border-l-2 pl-2">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-semibold">{model.name}</h4>
-                          <div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
                             <Button
                               onClick={() => handleEditModel(model)}
                               size="sm"
                               className="mr-2"
                             >
-                              <Pencil size={16} className="mr-2" />
+                              <Pencil size={16} />
                             </Button>
-                            <Button
-                              onClick={() => handleDeleteModel(model.id)}
-                              size="sm"
-                              variant="destructive"
-                              className="mr-2"
-                            >
-                              <Trash2 size={16} className="mr-2" />
-                            </Button>
+                            <h4 className="font-semibold mr-2">{model.name}</h4>
                             <button
                               onClick={() => toggleModelDropdown(model.id)}
                               className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300 flex items-center"
@@ -419,6 +443,13 @@ export default function DbPage() {
                               )}
                             </button>
                           </div>
+                          <Button
+                            onClick={() => handleDeleteModel(model.id)}
+                            size="sm"
+                            variant="destructive"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
                         </div>
                         {openModelIds.includes(model.id) && (
                           <div className="mt-2 ml-2 text-sm">
@@ -451,31 +482,31 @@ export default function DbPage() {
                           </div>
                         )}
                         {model.photos && model.photos.length > 0 ? (
-                          <ul className="ml-4 mt-1">
+                          <ul className="ml-4 mt-1 border-l-2 pl-2">
                             {model.photos.map((photo) => (
                               <li
                                 key={photo.id}
-                                className="text-sm flex justify-between items-center"
+                                className="text-sm flex items-center justify-between"
                               >
-                                <span>{photo.url}</span>
-                                <div>
+                                <div className="flex items-center">
                                   <Button
                                     onClick={() => handleEditPhoto(photo)}
                                     size="sm"
                                     className="mr-2"
                                   >
-                                    <Pencil size={16} className="mr-2" />
+                                    <Pencil size={16} />
                                   </Button>
-                                  <Button
-                                    onClick={() =>
-                                      handleDeletePhoto(photo.id, model.id)
-                                    }
-                                    size="sm"
-                                    variant="destructive"
-                                  >
-                                    <Trash2 size={16} className="mr-2" />
-                                  </Button>
+                                  <span>{photo.url}</span>
                                 </div>
+                                <Button
+                                  onClick={() =>
+                                    handleDeletePhoto(photo.id, model.id)
+                                  }
+                                  size="sm"
+                                  variant="destructive"
+                                >
+                                  <Trash2 size={16} />
+                                </Button>
                               </li>
                             ))}
                           </ul>
