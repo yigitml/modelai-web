@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -57,20 +57,32 @@ export default function DbPage() {
         }
         const userData: User[] = await usersResponse.json();
 
-        const usersWithModels = await Promise.all(
+        const usersWithModelsAndPhotos = await Promise.all(
           userData.map(async (user) => {
             const modelsResponse = await fetch(`/api/models?userId=${user.id}`);
             if (modelsResponse.ok) {
-              const models = await modelsResponse.json();
-              return { ...user, models };
+              const models: Model[] = await modelsResponse.json();
+              const modelsWithPhotos = await Promise.all(
+                models.map(async (model) => {
+                  const photosResponse = await fetch(
+                    `/api/photos?modelId=${model.id}`,
+                  );
+                  if (photosResponse.ok) {
+                    const photos: Photo[] = await photosResponse.json();
+                    return { ...model, photos };
+                  }
+                  return model;
+                }),
+              );
+              return { ...user, models: modelsWithPhotos };
             }
             return user;
           }),
         );
 
-        setUsers(usersWithModels);
+        setUsers(usersWithModelsAndPhotos);
       } catch (error) {
-        console.error("Error fetching users and models:", error);
+        console.error("Error fetching users, models, and photos:", error);
       }
     };
 
@@ -276,6 +288,62 @@ export default function DbPage() {
     }
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    try {
+      const response = await fetch(`/api/users?id=${userId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete user");
+      setUsers(users.filter((user) => user.id !== userId));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
+
+  const handleDeleteModel = async (modelId: string) => {
+    if (!confirm("Are you sure you want to delete this model?")) return;
+    try {
+      const response = await fetch(`/api/models?id=${modelId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete model");
+      setUsers(
+        users.map((user) => ({
+          ...user,
+          models: user.models?.filter((model) => model.id !== modelId),
+        })),
+      );
+    } catch (error) {
+      console.error("Error deleting model:", error);
+    }
+  };
+
+  const handleDeletePhoto = async (photoId: string, modelId: string) => {
+    if (!confirm("Are you sure you want to delete this photo?")) return;
+    try {
+      const response = await fetch(`/api/photos?id=${photoId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete photo");
+      setUsers(
+        users.map((user) => ({
+          ...user,
+          models: user.models?.map((model) =>
+            model.id === modelId
+              ? {
+                  ...model,
+                  photos: model.photos?.filter((photo) => photo.id !== photoId),
+                }
+              : model,
+          ),
+        })),
+      );
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+    }
+  };
+
   return (
     <AuthenticatedLayout activeTab="Database">
       <div className="p-6">
@@ -303,9 +371,22 @@ export default function DbPage() {
                   <h3 className="font-bold">
                     {user.name} - {user.email}
                   </h3>
-                  <Button onClick={() => handleEditUser(user)} size="sm">
-                    <Pencil size={16} className="mr-2" /> Edit User
-                  </Button>
+                  <div>
+                    <Button
+                      onClick={() => handleEditUser(user)}
+                      size="sm"
+                      className="mr-2"
+                    >
+                      <Pencil size={16} className="mr-2" />
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteUser(user.id)}
+                      size="sm"
+                      variant="destructive"
+                    >
+                      <Trash2 size={16} className="mr-2" />
+                    </Button>
+                  </div>
                 </div>
                 {user.models && user.models.length > 0 ? (
                   <ul className="ml-4 mt-2 space-y-2">
@@ -319,7 +400,15 @@ export default function DbPage() {
                               size="sm"
                               className="mr-2"
                             >
-                              <Pencil size={16} className="mr-2" /> Edit Model
+                              <Pencil size={16} className="mr-2" />
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteModel(model.id)}
+                              size="sm"
+                              variant="destructive"
+                              className="mr-2"
+                            >
+                              <Trash2 size={16} className="mr-2" />
                             </Button>
                             <button
                               onClick={() => toggleModelDropdown(model.id)}
@@ -371,13 +460,24 @@ export default function DbPage() {
                                 className="text-sm flex justify-between items-center"
                               >
                                 <span>{photo.url}</span>
-                                <Button
-                                  onClick={() => handleEditPhoto(photo)}
-                                  size="sm"
-                                >
-                                  <Pencil size={16} className="mr-2" /> Edit
-                                  Photo
-                                </Button>
+                                <div>
+                                  <Button
+                                    onClick={() => handleEditPhoto(photo)}
+                                    size="sm"
+                                    className="mr-2"
+                                  >
+                                    <Pencil size={16} className="mr-2" />
+                                  </Button>
+                                  <Button
+                                    onClick={() =>
+                                      handleDeletePhoto(photo.id, model.id)
+                                    }
+                                    size="sm"
+                                    variant="destructive"
+                                  >
+                                    <Trash2 size={16} className="mr-2" />
+                                  </Button>
+                                </div>
                               </li>
                             ))}
                           </ul>
@@ -657,46 +757,6 @@ export default function DbPage() {
                 )
               }
             />
-            <Select
-              onValueChange={(value) =>
-                setEditingPhoto((prev) =>
-                  prev ? { ...prev, modelId: value } : null,
-                )
-              }
-              value={editingPhoto?.modelId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Model" />
-              </SelectTrigger>
-              <SelectContent>
-                {users
-                  .flatMap((user) => user.models || [])
-                  .map((model) => (
-                    <SelectItem key={model.id} value={model.id}>
-                      {model.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-            <Select
-              onValueChange={(value) =>
-                setEditingPhoto((prev) =>
-                  prev ? { ...prev, userId: value } : null,
-                )
-              }
-              value={editingPhoto?.modelId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select User" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <DialogFooter>
             <Button onClick={handleSubmitPhotoEdit}>Save Changes</Button>
