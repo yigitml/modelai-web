@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAppContext } from "@/contexts/AppContext";
+import { Header } from "@/components/layout/Header";
 
 export default function DbPage() {
   const { jwtToken } = useAppContext();
@@ -377,8 +378,9 @@ export default function DbPage() {
   };
 
   return (
-    <>
-      <div className="p-6 bg-background min-h-screen">
+    <div className="min-h-screen bg-background text-foreground">
+      <Header />
+      <div className="p-6 min-h-screen">
         <h1 className="text-2xl font-bold mb-6">Database Management</h1>
         <div className="flex space-x-4 mb-6">
           <Button
@@ -787,6 +789,6 @@ export default function DbPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
