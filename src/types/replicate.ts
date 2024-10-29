@@ -40,7 +40,6 @@ export interface Prediction {
     stream?: string;
   };
   model: string;
-  data_removed: boolean;
 }
 
 export interface Training {

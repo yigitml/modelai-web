@@ -1,42 +1,31 @@
-import { Prediction } from "./replicate";
-
-export interface ApiResponse<T> {
-  data: T;
-  error?: string;
-}
-
-export interface PredictionsResponse {
-  results: Prediction[];
-  next?: string;
-}
+import { WebhookEventType } from "replicate";
 
 export interface CreateModelRequest {
   owner: string;
   name: string;
-  description: string;
-  visibility: "public" | "private";
-  hardware: string;
-}
-
-export interface UploadFileRequest {
-  content: File;
+  visibility?: "public" | "private";
+  hardware?: "cpu" | "gpu" | "gpu-t4" | "gpu-a100";
+  description?: string;
 }
 
 export interface TrainModelRequest {
-  model: string;
+  owner: string;
+  name: string;
   version: string;
+  destination: {
+    owner: string;
+    name: string;
+  };
   input: {
-    instance_prompt: string;
-    class_prompt: string;
-    instance_data: string;
-    max_train_steps: number;
-    num_class_images: number;
-    learning_rate: number;
-    [key: string]: unknown;
+    [key: string]: any;
   };
 }
 
 export interface CreatePredictionRequest {
   version: string;
-  input: Record<string, unknown>;
+  input: {
+    [key: string]: any;
+  };
+  webhook?: string;
+  webhook_events_filter?: WebhookEventType[];
 }

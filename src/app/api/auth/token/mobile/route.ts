@@ -17,6 +17,10 @@ interface MobileAuthResponse {
 }
 */
 
+// 1. Mobile app initiates Google Sign-In using native SDK
+// 2. Receives Google ID token
+// 3. Sends to your backend endpoint
+
 // New endpoint for mobile authentication
 export async function POST(request: NextRequest) {
   try {
