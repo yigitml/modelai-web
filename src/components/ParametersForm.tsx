@@ -34,12 +34,12 @@ export const ParametersForm: React.FC = () => {
         version: selectedModel.versionId,
         input: {
           prompt: prompt,
-          num_outputs: parseInt(photoCount),
+          num_outputs: photoCount,
           output_format: "png",
-          guidance_scale: 3.5,
-          num_inference_steps: 32,
-          output_quality: 100,
-          disable_safety_checker: true,
+          guidance_scale: "3.5",
+          num_inference_steps: "32",
+          output_quality: "100",
+          disable_safety_checker: "true",
         },
       });
     } catch (error) {

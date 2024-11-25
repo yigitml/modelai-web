@@ -24,7 +24,7 @@ export interface TrainModelRequest {
 export interface CreatePredictionRequest {
   version: string;
   input: {
-    [key: string]: undefined;
+    [key: string]: string;
   };
   webhook?: string;
   webhook_events_filter?: WebhookEventType[];
