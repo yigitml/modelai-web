@@ -10,11 +10,11 @@ interface ModelAIProps {
 
 const ModelAI: React.FC<ModelAIProps> = ({ activeTab, children }) => {
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground px-4">
+    <div className="flex flex-col h-screen bg-background text-foreground pr-4">
       <div className="flex-grow overflow-hidden">
         <div className="h-full flex">
           <Card className="w-1/4 flex flex-col m-4">
-            <CardContent className="flex-grow overflow-y-auto p-4">
+            <CardContent className="flex-grow overflow-y-auto p-2">
               <div className="space-y-4">
                 <ModelSelector />
               </div>
@@ -22,7 +22,7 @@ const ModelAI: React.FC<ModelAIProps> = ({ activeTab, children }) => {
             </CardContent>
           </Card>
 
-          <div className="w-3/4 overflow-y-auto p-4">
+          <div className="w-3/4 overflow-y-auto p-2">
             {activeTab}
             {children}
           </div>

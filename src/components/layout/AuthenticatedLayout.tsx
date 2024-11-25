@@ -4,7 +4,7 @@ import ModelAI from "../ModelAI";
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
-  activeTab: string;
+  activeTab?: string;
 }
 
 export const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
@@ -13,8 +13,14 @@ export const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
 }) => {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
-      <ModelAI activeTab={activeTab}>{children}</ModelAI>
+      <div className="min-h-screen">
+        <Header />
+        {activeTab ? (
+          <ModelAI activeTab={activeTab}>{children}</ModelAI>
+        ) : (
+          children
+        )}
+      </div>
     </div>
   );
 };

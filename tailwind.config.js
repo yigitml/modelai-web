@@ -9,7 +9,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "seperation-line": "#636363",
+        "seperation-line": "#333333",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

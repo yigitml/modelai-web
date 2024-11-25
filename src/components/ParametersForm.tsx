@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useAppContext } from "@/contexts/AppContext";
 
 export const ParametersForm: React.FC = () => {
-  const { takePhotos, selectedModel } = useAppContext();
+  const { createPhotos, selectedModel } = useAppContext();
   const [prompt, setPrompt] = useState("");
   const [orientation, setOrientation] = useState("portrait");
   const [photoCount, setPhotoCount] = useState("1");
@@ -30,15 +30,16 @@ export const ParametersForm: React.FC = () => {
     }
     setIsCreating(true);
     try {
-      await takePhotos({
+      await createPhotos({
         version: selectedModel.versionId,
         input: {
           prompt: prompt,
           num_outputs: parseInt(photoCount),
-          output_format: "jpg",
+          output_format: "png",
           guidance_scale: 3.5,
-          num_inference_steps: 28,
+          num_inference_steps: 32,
           output_quality: 100,
+          disable_safety_checker: true,
         },
       });
     } catch (error) {

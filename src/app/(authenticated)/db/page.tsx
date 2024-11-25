@@ -264,7 +264,10 @@ export default function DbPage() {
     try {
       const response = await fetch(`/api/models?id=${editingModel.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwtToken}`,
+        },
         body: JSON.stringify(editingModel),
       });
 

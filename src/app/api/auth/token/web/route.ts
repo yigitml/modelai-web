@@ -49,13 +49,26 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const expiresIn = "1d";
+    const expiresAt = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // Unix timestamp for 1 day
+
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET!,
-      { expiresIn: "1d" },
+      { expiresIn },
     );
 
-    return NextResponse.json({ token });
+    return NextResponse.json({
+      token,
+      expiresIn,
+      expiresAt,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.image,
+      },
+    });
   } catch (error) {
     console.error("Error in token generation:", error);
     if (error instanceof SyntaxError) {

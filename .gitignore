@@ -56,3 +56,5 @@ prisma/migrations
 
 # Database
 *.db-journal
+
+*.png

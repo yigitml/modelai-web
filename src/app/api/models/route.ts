@@ -43,7 +43,6 @@ export const POST = jwtAuth(async (request: NextRequest) => {
     const model = await prisma.model.create({
       data: {
         ...data,
-        // Add any default fields or transformations here if needed
       },
     });
     return NextResponse.json(model);
@@ -66,11 +65,15 @@ export const PUT = jwtAuth(async (request: NextRequest) => {
     }
 
     const data = await request.json();
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { photos: _photos, ...modelData } = data;
+
     const updatedModel = await prisma.model.update({
       where: { id: id },
-      data: {
-        ...data,
-        // Add any field validations or transformations here if needed
+      data: modelData,
+      include: {
+        photos: true, // Include photos in the response
       },
     });
 

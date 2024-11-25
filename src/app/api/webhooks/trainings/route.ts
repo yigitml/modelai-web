@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getModelById } from "@/lib/replicate";
-import { verifyWebhookSignature } from "@/utils/webhookVerification";
+//import { verifyWebhookSignature } from "@/utils/webhookVerification";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const signature = request.headers.get("replicate-signature");
+    //const signature = request.headers.get("replicate-signature");
 
+    /*
     if (!verifyWebhookSignature(JSON.stringify(body), signature)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
+    */
 
     const trainingId = body.id;
 
@@ -22,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     if (body.status === "succeeded") {
-      const modelDetails = await getModelById(body.model);
+      const modelDetails = await getModelById(body.owner, body.name);
 
       if (!modelDetails) {
         return NextResponse.json({ error: "Model not found" }, { status: 404 });

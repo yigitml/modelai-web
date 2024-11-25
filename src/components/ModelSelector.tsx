@@ -7,8 +7,7 @@ import { ChevronDown } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 
 export const ModelSelector: React.FC = () => {
-  const { models, selectedModel, setSelectedModel, fetchModels } =
-    useAppContext();
+  const { models, selectedModel, setSelectedModel } = useAppContext();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -27,24 +26,26 @@ export const ModelSelector: React.FC = () => {
       <div>
         <div className="relative">
           <div
-            className="flex flex-col p-2 border rounded-lg cursor-pointer"
+            className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer"
             onClick={() => {
               setIsDropdownOpen(!isDropdownOpen);
-              fetchModels();
             }}
           >
-            <div className="w-full aspect-square mb-2 rounded-md overflow-hidden">
-              <Image
-                src={selectedModel?.avatarUrl ?? ""}
-                alt={selectedModel?.name ?? "No model selected"}
-                className="w-full h-full object-cover"
-                height={256}
-                width={256}
-                layout="responsive"
-              />
+            <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
+              {selectedModel?.avatarUrl && (
+                <Image
+                  src={selectedModel?.avatarUrl}
+                  alt={selectedModel?.name ?? "No model selected"}
+                  className="w-full h-full object-cover"
+                  height={48}
+                  width={48}
+                />
+              )}
             </div>
-            <div className="flex justify-between items-center">
-              <span>{selectedModel?.name ?? "Select a model"}</span>
+            <div className="flex justify-between items-center flex-1">
+              <span className="text-lg font-semibold pl-1">
+                {selectedModel?.name ?? "Select model"}
+              </span>
               <ChevronDown
                 className={`transition-transform duration-300 ${isDropdownOpen ? "transform rotate-180" : ""}`}
               />

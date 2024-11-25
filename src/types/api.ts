@@ -17,14 +17,14 @@ export interface TrainModelRequest {
     name: string;
   };
   input: {
-    [key: string]: any;
+    [key: string]: undefined;
   };
 }
 
 export interface CreatePredictionRequest {
   version: string;
   input: {
-    [key: string]: any;
+    [key: string]: undefined;
   };
   webhook?: string;
   webhook_events_filter?: WebhookEventType[];

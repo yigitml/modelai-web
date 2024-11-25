@@ -18,16 +18,28 @@ interface AppState {
   photos: Photo[];
   user: User | null;
   jwtToken: string | null;
+  isLoading: boolean;
+  error: Error | null;
 }
+
+const API_ENDPOINTS = {
+  TOKEN: "/api/auth/token/web",
+  USERS: "/api/users",
+  MODELS: "/api/models",
+  PHOTOS: "/api/photos",
+  PREDICTIONS: "/api/predictions",
+  PREDICTION_WEBHOOK: "/api/webhooks/predictions",
+  TRAINING_WEBHOOK: "/api/webhooks/trainings",
+} as const;
 
 interface AppContextType extends AppState {
   setJwtToken: (token: string | null) => void;
+  getUser: () => Promise<void>;
+  createModel: (newModel: AppModel) => Promise<void>;
+  getModels: () => Promise<void>;
   setSelectedModel: (model: AppModel) => void;
-  createModel: () => Promise<void>;
-  fetchModels: () => Promise<void>;
-  takePhotos: (data: CreatePredictionRequest) => Promise<void>;
-  fetchPhotos: () => Promise<void>;
-  fetchUser: () => Promise<void>;
+  createPhotos: (data: CreatePredictionRequest) => Promise<void>;
+  getPhotos: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -42,88 +54,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     photos: [],
     user: null,
     jwtToken: null,
+    isLoading: false,
+    error: null,
   });
 
-  const setJwtToken = (token: string | null) => {
-    setState((prevState) => ({ ...prevState, jwtToken: token }));
-  };
-
-  const { data: userData, isLoading: isUserLoading } = useQuery({
-    queryKey: ["user", session?.user?.email],
-    queryFn: async () => {
-      if (!session?.user?.email) {
-        return null;
-      }
-      const response = await fetch("/api/users?email=" + session?.user?.email, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${state.jwtToken}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    },
-    enabled: !!session?.user?.email,
-  });
-
-  const { data: modelsData, refetch: refetchModels } = useQuery({
-    queryKey: ["models", state.user?.id],
-    queryFn: async () => {
-      const response = await fetch("/api/models?userId=" + state.user?.id, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${state.jwtToken}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    },
-    enabled: false,
-  });
-
-  const { data: photosData } = useQuery({
-    queryKey: ["photos", state.selectedModel?.id],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/photos?modelId=${state.selectedModel?.id}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${state.jwtToken}`,
-          },
-        },
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    },
-    enabled: false,
-  });
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.email) {
-      fetchJwtToken();
-    }
-  }, [session, status]);
-
-  const fetchJwtToken = async () => {
+  const getJwtToken = async () => {
     try {
       if (!session?.idToken) {
         console.error("No ID token available in the session");
         return;
       }
-      const response = await fetch("/api/auth/token/web", {
+      const response = await fetch(API_ENDPOINTS.TOKEN, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -144,148 +85,120 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  useEffect(() => {
-    if (
-      status === "authenticated" &&
-      session?.user &&
-      userData &&
-      !isUserLoading
-    ) {
+  const setJwtToken = (token: string | null) => {
+    setState((prevState) => ({ ...prevState, jwtToken: token }));
+  };
+
+  const {
+    /* data: userData */
+  } = useQuery({
+    queryKey: ["user", session?.user?.email, state.jwtToken],
+    enabled: !!session?.user?.email && !!state.jwtToken,
+    queryFn: async () => {
+      const response = await fetch(
+        `${API_ENDPOINTS.USERS}?email=${session?.user?.email}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${state.jwtToken}`,
+          },
+        },
+      );
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
       setState((prevState) => ({
         ...prevState,
         user: {
-          id: userData.id || "",
-          name: userData.name || session.user?.name || "",
-          email: userData.email || session.user?.email || "",
-          googleId: userData.googleId || "",
-          avatarUrl: userData.avatarUrl || session.user?.image || "",
-          createdAt: userData.createdAt || "",
-          updatedAt: userData.updatedAt || "",
-          models: userData.models || [],
+          id: data.id || "",
+          name: data.name || session?.user?.name || "",
+          email: data.email || session?.user?.email || "",
+          googleId: data.googleId || "",
+          avatarUrl: data.avatarUrl || session?.user?.image || "",
+          createdAt: data.createdAt || "",
+          updatedAt: data.updatedAt || "",
+          models: data.models || [],
         },
       }));
-    }
-  }, [session, status, userData, isUserLoading]);
+      return data;
+    },
+  });
 
-  const setSelectedModel = (model: AppModel) => {
-    setState((prevState) => ({ ...prevState, selectedModel: model }));
-  };
-
-  const createModel = useCallback(async () => {
-    try {
-      const webhookUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/trainings`;
-      const response = await fetch("/api/models", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${state.jwtToken}`,
+  const { /* data: modelsData, */ refetch: refetchModels } = useQuery({
+    queryKey: ["models", state.user?.id],
+    queryFn: async () => {
+      if (!state.user?.id) {
+        return [];
+      }
+      const response = await fetch(
+        API_ENDPOINTS.MODELS + "?userId=" + state.user.id,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${state.jwtToken}`,
+          },
         },
-        body: JSON.stringify({
-          owner: process.env.NEXT_PUBLIC_REPLICATE_MODEL_OWNER,
-          name: "LUV",
-          description: "A new model created with webhooks",
-          visibility: "public",
-          hardware: "cpu",
-          webhook: webhookUrl,
-          webhook_events_filter: ["completed", "failed"],
-        }),
-      });
-
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      setState((prevState) => ({ ...prevState, models: data }));
+      return data;
+    },
+    enabled: !!state.user?.id && !!state.jwtToken,
+  });
 
-      const newModel = await response.json();
-      setState((prevState) => ({
-        ...prevState,
-        models: [...prevState.models, newModel],
-      }));
-    } catch (error) {
-      console.error("Error creating model:", error);
-    }
-  }, []);
-
-  const fetchModels = useCallback(async () => {
-    try {
-      await refetchModels();
-      if (Array.isArray(modelsData)) {
-        setState((prevState) => ({ ...prevState, models: modelsData }));
-      } else {
-        console.error("Unexpected modelsData format:", modelsData);
-        setState((prevState) => ({ ...prevState, models: [] }));
+  const { /* data: photosData, */ refetch: refetchPhotos } = useQuery({
+    queryKey: ["photos", state.selectedModel?.id],
+    queryFn: async () => {
+      if (!state.selectedModel?.id) {
+        return [];
       }
-    } catch (error) {
-      console.error("Error fetching models:", error);
-      setState((prevState) => ({ ...prevState, models: [] }));
-    }
-  }, [modelsData, refetchModels]);
-
-  const takePhotos = useCallback(async (data: CreatePredictionRequest) => {
-    try {
-      setState((prevState) => ({
-        ...prevState,
-      }));
-
-      const webhookUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/predictions`;
-
-      const response = await fetch("/api/predictions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${state.jwtToken}`,
+      const response = await fetch(
+        API_ENDPOINTS.PHOTOS + "?modelId=" + state.selectedModel.id,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${state.jwtToken}`,
+          },
         },
-        body: JSON.stringify({
-          action: "create",
-          version: data.version,
-          input: data.input,
-          webhook: webhookUrl,
-          webhook_events_filter: ["completed", "failed"],
-        }),
-      });
-
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-    } catch (error) {
-      console.error("Error taking photos:", error);
-      setState((prevState) => ({
-        ...prevState,
-      }));
-    }
-  }, []);
+      const data = await response.json();
+      setState((prevState) => ({ ...prevState, photos: data }));
+      return data;
+    },
+    enabled: !!state.selectedModel?.id && !!state.jwtToken,
+  });
 
-  const fetchPhotos = useCallback(async () => {
-    try {
-      if (Array.isArray(photosData)) {
-        setState((prevState) => ({ ...prevState, photos: photosData }));
-      } else if (
-        photosData &&
-        typeof photosData === "object" &&
-        "results" in photosData
-      ) {
-        setState((prevState) => ({ ...prevState, photos: photosData.results }));
-      } else {
-        console.error("Unexpected photosData format:", photosData);
-        setState((prevState) => ({ ...prevState, photos: [] }));
-      }
-    } catch (error) {
-      console.error("Error fetching photos:", error);
-      setState((prevState) => ({ ...prevState, photos: [] }));
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.email) {
+      getJwtToken();
     }
-  }, [photosData]);
+  }, [session, status]);
 
-  const fetchUser = useCallback(async () => {
+  const getUser = useCallback(async () => {
     if (state.jwtToken) {
-      const response = await fetch("/api/users?email=" + session?.user?.email, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${state.jwtToken}`,
+      const response = await fetch(
+        API_ENDPOINTS.USERS + "?email=" + session?.user?.email,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${state.jwtToken}`,
+          },
         },
-      });
+      );
       if (response.ok) {
         const userData = await response.json();
         setState((prevState) => ({ ...prevState, user: userData }));
@@ -293,17 +206,115 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [state.jwtToken]);
 
+  const createModel = useCallback(async (newModel: AppModel) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.MODELS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${state.jwtToken}`,
+        },
+        body: JSON.stringify(newModel),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const createdModel = await response.json();
+      setState((prevState) => ({
+        ...prevState,
+        models: [...prevState.models, createdModel],
+      }));
+    } catch (error) {
+      console.error("Error creating model:", error);
+    }
+  }, []);
+
+  /*
+  const trainModel = useCallback(async (modelId: string) => {
+    try {
+      const response = await fetch(`${API_ENDPOINTS.MODELS}/${modelId}/train`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${state.jwtToken}`,
+        },
+      });
+    } catch (error) {
+      console.error("Error training model:", error);
+    }
+  }, []);
+  */
+
+  const getModels = useCallback(async () => {
+    try {
+      await refetchModels();
+    } catch (error) {
+      console.error("Error fetching models:", error);
+      setState((prevState) => ({ ...prevState, models: [] }));
+    }
+  }, [refetchModels]);
+
+  const setSelectedModel = (model: AppModel) => {
+    setState((prevState) => ({ ...prevState, selectedModel: model }));
+  };
+
+  const createPhotos = useCallback(
+    async (data: CreatePredictionRequest) => {
+      try {
+        const webhookUrl = `${process.env.NEXT_PUBLIC_BASE_URL}${API_ENDPOINTS.PREDICTION_WEBHOOK}`;
+
+        const response = await fetch(API_ENDPOINTS.PREDICTIONS, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${state.jwtToken}`,
+          },
+          body: JSON.stringify({
+            action: "create",
+            version: data.version,
+            input: data.input,
+            webhook: webhookUrl,
+            webhook_events_filter: ["completed", "failed"],
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await refetchPhotos();
+      } catch (error) {
+        console.error("Error taking photos:", error);
+      }
+    },
+    [refetchPhotos, state.jwtToken],
+  );
+
+  const getPhotos = useCallback(async () => {
+    try {
+      await refetchPhotos();
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+      setState((prevState) => ({ ...prevState, photos: [] }));
+    }
+  }, [refetchPhotos]);
+
   return (
     <AppContext.Provider
       value={{
         ...state,
         setJwtToken,
-        fetchUser,
-        setSelectedModel,
+        getUser,
         createModel,
-        fetchModels,
-        takePhotos,
-        fetchPhotos,
+        getModels,
+        setSelectedModel,
+        createPhotos,
+        getPhotos,
       }}
     >
       {children}

@@ -9,26 +9,36 @@ import {
 
 const plans = [
   {
-    name: "Basic",
-    price: "$9.99/month",
+    name: "Starter",
+    price: "$19.99/month",
     features: ["100 images/month", "Basic editing tools", "Email support"],
   },
   {
     name: "Pro",
-    price: "$19.99/month",
+    price: "$49.99/month",
     features: [
       "500 images/month",
       "Advanced editing tools",
-      "Priority support",
+      <span
+        key="highlight1"
+        className="bg-yellow-400 text-background rounded-full px-2 py-0.5 font-semibold"
+      >
+        NEW: Priority support
+      </span>,
     ],
   },
   {
-    name: "Enterprise",
-    price: "Custom",
+    name: "Premium",
+    price: "$99.99/month",
     features: [
       "Unlimited images",
       "Full feature set",
-      "24/7 dedicated support",
+      <span
+        key="highlight2"
+        className="bg-yellow-400 text-background rounded-full px-2 py-0.5 font-semibold"
+      >
+        NEW: 24/7 dedicated support
+      </span>,
     ],
   },
 ];
@@ -44,7 +54,17 @@ export default function SubscriptionPlansPage() {
           {plans.map((plan) => (
             <Card key={plan.name}>
               <CardHeader>
-                <h2 className="text-2xl font-bold">{plan.name}</h2>
+                <h2
+                  className={`text-2xl font-bold ${
+                    plan.name === "Premium"
+                      ? "bg-gradient-to-r from-blue-400 via-cyan-500 to-blue-600 text-transparent bg-clip-text"
+                      : plan.name === "Pro"
+                        ? "bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 text-transparent bg-clip-text"
+                        : ""
+                  }`}
+                >
+                  {plan.name}
+                </h2>
                 <p className="text-xl">{plan.price}</p>
               </CardHeader>
               <CardContent>

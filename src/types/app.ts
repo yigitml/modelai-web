@@ -24,8 +24,17 @@ export interface Model {
 export interface Photo {
   id: string;
   url: string;
-  createdAt: string;
   modelId: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PhotoStatus {
+  id: string;
+  predictionId: string;
+  status: "loading" | "completed" | "failed";
+  url?: string;
 }
 
 export interface AppState {

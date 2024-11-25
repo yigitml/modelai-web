@@ -54,6 +54,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT with additional mobile-specific claims
+    const expiresIn = "30d";
+    const expiresAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // Unix timestamp
     const token = jwt.sign(
       {
         userId: user.id,
@@ -62,11 +64,12 @@ export async function POST(request: NextRequest) {
         isMobile: true,
       },
       process.env.JWT_SECRET!,
-      { expiresIn: "30d" }, // Longer expiration for mobile
+      { expiresIn }, // Using the variable
     );
 
     return NextResponse.json({
       token,
+      expiresAt, // Unix timestamp of expiration
       user: {
         id: user.id,
         email: user.email,

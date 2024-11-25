@@ -1,4 +1,10 @@
-import Replicate, { Model, Prediction, Training, WebhookEventType } from "replicate";
+import Replicate, {
+  Model,
+  Prediction,
+  Training,
+  WebhookEventType,
+  FileObject,
+} from "replicate";
 import {
   CreateModelRequest,
   CreatePredictionRequest,
@@ -6,17 +12,18 @@ import {
 } from "@/types/api";
 
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-const MODEL_OWNER = process.env.REPLICATE_MODEL_OWNER;
+//const MODEL_OWNER = process.env.REPLICATE_MODEL_OWNER;
 
 const replicate = new Replicate({
   auth: REPLICATE_API_TOKEN,
   userAgent: "modeai-web/1.0.0",
 });
 
-export const uploadFile = async (data: FormData): Promise<any> => {
+export const uploadFile = async (data: FormData): Promise<FileObject> => {
   try {
-    const file = data.get('file');
-    if (!file || !(file instanceof File)) throw new Error('No valid file provided');
+    const file = data.get("file");
+    if (!file || !(file instanceof File))
+      throw new Error("No valid file provided");
     return await replicate.files.create(file);
   } catch (error) {
     handleApiError(error, "Error uploading file");
@@ -26,24 +33,23 @@ export const uploadFile = async (data: FormData): Promise<any> => {
 
 export const createModel = async (data: CreateModelRequest): Promise<Model> => {
   try {
-    const response = await replicate.models.create(
-      data.owner,
-      data.name,
-      {
-        visibility: data.visibility || "private",
-        hardware: data.hardware || "cpu",
-        description: data.description,
-      }
-    );
+    const response = await replicate.models.create(data.owner, data.name, {
+      visibility: data.visibility || "private",
+      hardware: data.hardware || "cpu",
+      description: data.description,
+    });
     // Transform the response to match ModelResponse type
-    return response
+    return response;
   } catch (error) {
     handleApiError(error, "Error creating model");
     throw error;
   }
 };
 
-export const getModelById = async (owner: string, name: string): Promise<Model> => {
+export const getModelById = async (
+  owner: string,
+  name: string,
+): Promise<Model> => {
   try {
     return await replicate.models.get(owner, name);
   } catch (error) {
@@ -52,19 +58,24 @@ export const getModelById = async (owner: string, name: string): Promise<Model> 
   }
 };
 
-export const trainModel = async (data: TrainModelRequest): Promise<Training> => {
+export const trainModel = async (
+  data: TrainModelRequest,
+): Promise<Training> => {
   try {
-    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/trainings`;
+    //const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/trainings`;
+    const webhookUrl = `${process.env.NEXT_PUBLIC_WEBHOOK_DELIVERY_URL}/api/webhooks/trainings`;
     return await replicate.trainings.create(
       data.owner,
       data.name,
       data.version,
       {
-        destination: `${data.destination.owner}/${data.destination.name}`,  // Format as "owner/name"
+        destination: `${data.destination.owner}/${data.destination.name}`, // Format as "owner/name"
         input: data.input,
         webhook: webhookUrl,
-        webhook_events_filter: webhookUrl ? ["completed", "failed"] as WebhookEventType[] : undefined,
-      }
+        webhook_events_filter: webhookUrl
+          ? (["completed"] as WebhookEventType[])
+          : undefined,
+      },
     );
   } catch (error) {
     handleApiError(error, "Error starting training");
@@ -72,17 +83,19 @@ export const trainModel = async (data: TrainModelRequest): Promise<Training> => 
   }
 };
 
-export const createPrediction = async (data: CreatePredictionRequest): Promise<Prediction> => {
+export const createPrediction = async (
+  data: CreatePredictionRequest,
+): Promise<Prediction> => {
   try {
-    const webhookUrl = process.env.NEXT_PUBLIC_APP_URL
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/predictions`
-      : undefined;
+    const webhookUrl = `${process.env.NEXT_PUBLIC_WEBHOOK_DELIVERY_URL}/api/webhooks/predictions`;
 
     return await replicate.predictions.create({
       version: data.version,
       input: data.input,
       webhook: webhookUrl,
-      webhook_events_filter: webhookUrl ? ["completed", "failed"] as WebhookEventType[] : undefined,
+      webhook_events_filter: webhookUrl
+        ? (["completed"] as WebhookEventType[])
+        : undefined,
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -92,7 +105,9 @@ export const createPrediction = async (data: CreatePredictionRequest): Promise<P
   }
 };
 
-export const getPredictionById = async (predictionId: string): Promise<Prediction> => {
+export const getPredictionById = async (
+  predictionId: string,
+): Promise<Prediction> => {
   try {
     return await replicate.predictions.get(predictionId);
   } catch (error) {
