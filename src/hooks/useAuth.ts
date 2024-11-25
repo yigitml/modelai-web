@@ -6,7 +6,7 @@ import {
 import { useAppContext } from "@/contexts/AppContext";
 
 const useAuth = () => {
-  const { setJwtToken, fetchUser } = useAppContext();
+  const { setJwtToken, getUser } = useAppContext();
 
   const signIn = async (provider: string, options?: SignInOptions) => {
     const result = await nextAuthSignIn(provider, options);
@@ -18,7 +18,7 @@ const useAuth = () => {
       });
       const { token } = await tokenResponse.json();
       setJwtToken(token);
-      await fetchUser();
+      await getUser();
     }
     return result;
   };
