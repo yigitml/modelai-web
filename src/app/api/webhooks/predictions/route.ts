@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-//import { verifyWebhookSignature } from "@/utils/webhookVerification";
+import { ipWhitelist } from "@/middleware/ipWhitelist";
+import { verifyWebhookSignature } from "@/utils/webhookVerification";
 import fs from "fs/promises";
 import path from "path";
 import axios from "axios";
 
-export async function POST(request: Request) {
+export const POST = ipWhitelist(async (request: Request) => {
   try {
+    const signature = request.headers.get("replicate-signature");
     const body = await request.json();
-    //const signature = request.headers.get("replicate-signature");
-    const predictionId = body.id; // Get the prediction ID from the webhook
+    const payload = JSON.stringify(body);
+
+    if (!verifyWebhookSignature(payload, signature)) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
+
+    const predictionId = body.id;
 
     if (body.status !== "succeeded") {
       return NextResponse.json(
@@ -18,12 +25,18 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!body.output || !Array.isArray(body.output)) {
-      return NextResponse.json(
-        { message: "Prediction has no valid output", predictionId },
-        { status: 202 },
-      );
-    }
+    // Update prediction record with new status and output
+    await prisma.prediction.update({
+      where: { id: predictionId },
+      data: {
+        status: body.status,
+        output: JSON.stringify(body.output),
+        completedAt: new Date(),
+        metrics: JSON.stringify(body.metrics || {}),
+        logs: body.logs || "",
+        urls: JSON.stringify(body.urls || {}),
+      },
+    });
 
     const model = await prisma.model.findFirst({
       where: { versionId: body.version },
@@ -77,4 +90,4 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-}
+});

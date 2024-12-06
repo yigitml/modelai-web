@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  cancelPrediction,
-  getPredictionById,
-  createPrediction,
-} from "@/lib/replicate";
+import { cancelPrediction, createPrediction } from "@/lib/replicate";
 import type { CreatePredictionRequest } from "@/types/api";
 import { jwtAuth } from "@/middleware/jwtAuth";
+import prisma from "@/lib/prisma";
 
 export const GET = jwtAuth(async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
@@ -13,7 +10,34 @@ export const GET = jwtAuth(async (request: NextRequest) => {
 
   try {
     if (id) {
-      const prediction = await getPredictionById(id);
+      const prediction = await prisma.prediction.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          model: {
+            select: {
+              id: true,
+              name: true,
+              replicateId: true,
+              versionId: true,
+            },
+          },
+        },
+      });
+
+      if (!prediction) {
+        return NextResponse.json(
+          { error: "Prediction not found" },
+          { status: 404 },
+        );
+      }
+
       return NextResponse.json(prediction);
     } else {
       return NextResponse.json(

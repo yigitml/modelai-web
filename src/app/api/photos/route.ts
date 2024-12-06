@@ -3,10 +3,22 @@ import prisma from "@/lib/prisma";
 import { jwtAuth } from "@/middleware/jwtAuth";
 
 export const GET = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
+  try {
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error fetching photos:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch photos" },
+      { status: 500 },
+    );
+  }
   const searchParams = request.nextUrl.searchParams;
   const id = searchParams.get("id");
   const modelId = searchParams.get("modelId");
-  const userId = searchParams.get("userId");
 
   try {
     if (id) {
@@ -24,9 +36,9 @@ export const GET = jwtAuth(async (request: NextRequest) => {
         where: { modelId: modelId },
       });
       return NextResponse.json(photos);
-    } else if (userId) {
+    } else if (authenticatedUserId) {
       const photos = await prisma.photo.findMany({
-        where: { userId: userId },
+        where: { userId: authenticatedUserId },
       });
       return NextResponse.json(photos);
     } else {
@@ -45,11 +57,24 @@ export const GET = jwtAuth(async (request: NextRequest) => {
 });
 
 export const POST = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
+  try {
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error creating photo:", error);
+    return NextResponse.json(
+      { error: "Failed to create photo" },
+      { status: 500 },
+    );
+  }
+
   try {
     const photoData = await request.json();
-
     const newPhoto = await prisma.photo.create({
-      data: photoData,
+      data: { ...photoData, userId: authenticatedUserId },
     });
 
     return NextResponse.json(newPhoto, { status: 201 });
@@ -63,6 +88,19 @@ export const POST = jwtAuth(async (request: NextRequest) => {
 });
 
 export const PUT = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
+  try {
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error updating photo:", error);
+    return NextResponse.json(
+      { error: "Failed to update photo" },
+      { status: 500 },
+    );
+  }
   try {
     const { id, ...updateData } = await request.json();
 
@@ -86,6 +124,19 @@ export const PUT = jwtAuth(async (request: NextRequest) => {
 });
 
 export const DELETE = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
+  try {
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error deleting photo:", error);
+    return NextResponse.json(
+      { error: "Failed to delete photo" },
+      { status: 500 },
+    );
+  }
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

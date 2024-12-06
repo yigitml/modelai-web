@@ -3,7 +3,6 @@ import Replicate, {
   Prediction,
   Training,
   WebhookEventType,
-  FileObject,
 } from "replicate";
 import {
   CreateModelRequest,
@@ -19,12 +18,21 @@ const replicate = new Replicate({
   userAgent: "modeai-web/1.0.0",
 });
 
-export const uploadFile = async (data: FormData): Promise<FileObject> => {
+interface UploadResponse {
+  urls: string[];
+  size?: number;
+}
+
+export const uploadFile = async (data: FormData): Promise<UploadResponse> => {
   try {
     const file = data.get("file");
     if (!file || !(file instanceof File))
       throw new Error("No valid file provided");
-    return await replicate.files.create(file);
+    const response = await replicate.files.create(file);
+    return {
+      urls: [response.urls.get],
+      size: response.size,
+    };
   } catch (error) {
     handleApiError(error, "Error uploading file");
     throw error;

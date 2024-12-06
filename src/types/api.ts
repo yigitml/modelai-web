@@ -9,6 +9,7 @@ export interface CreateModelRequest {
 }
 
 export interface TrainModelRequest {
+  modelId: string;
   owner: string;
   name: string;
   version: string;

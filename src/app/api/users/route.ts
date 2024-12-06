@@ -3,14 +3,24 @@ import prisma from "@/lib/prisma";
 import { jwtAuth } from "@/middleware/jwtAuth";
 
 export const GET = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    const email = searchParams.get("email");
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error fetching models:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch models" },
+      { status: 500 },
+    );
+  }
 
-    if (id) {
+  try {
+    if (authenticatedUserId) {
       const user = await prisma.user.findUnique({
-        where: { id: id },
+        where: { id: authenticatedUserId },
       });
 
       if (!user) {
@@ -18,18 +28,7 @@ export const GET = jwtAuth(async (request: NextRequest) => {
       }
 
       return NextResponse.json(user);
-    } else if (email) {
-      const user = await prisma.user.findUnique({
-        where: { email },
-      });
-      return NextResponse.json(user);
     } else {
-      /*
-      return NextResponse.json(
-        { error: "Missing user id or email" },
-        { status: 400 },
-      );
-      */
       const users = await prisma.user.findMany();
       return NextResponse.json(users);
     }
@@ -43,17 +42,27 @@ export const GET = jwtAuth(async (request: NextRequest) => {
 });
 
 export const PUT = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error fetching models:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch models" },
+      { status: 500 },
+    );
+  }
 
-    if (!id) {
+  try {
+    if (!authenticatedUserId) {
       return NextResponse.json({ error: "Missing user id" }, { status: 400 });
     }
 
     const body = await request.json();
 
-    // Create a new object without the protected fields
     const updateData = {
       name: body.name,
       email: body.email,
@@ -61,7 +70,7 @@ export const PUT = jwtAuth(async (request: NextRequest) => {
     };
 
     const updatedUser = await prisma.user.update({
-      where: { id },
+      where: { id: authenticatedUserId },
       data: updateData,
     });
 
@@ -76,16 +85,27 @@ export const PUT = jwtAuth(async (request: NextRequest) => {
 });
 
 export const DELETE = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-
-    if (!id) {
-      return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+  } catch (error) {
+    console.error("Error fetching models:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch models" },
+      { status: 500 },
+    );
+  }
 
+  if (!authenticatedUserId) {
+    return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+  }
+
+  try {
     await prisma.user.delete({
-      where: { id },
+      where: { id: authenticatedUserId },
     });
 
     return NextResponse.json({ message: "User deleted successfully" });

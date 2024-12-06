@@ -5,7 +5,19 @@ import { jwtAuth } from "@/middleware/jwtAuth";
 export const GET = jwtAuth(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
-  const userId = searchParams.get("userId");
+  let authenticatedUserId;
+  try {
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error authenticating:", error);
+    return NextResponse.json(
+      { error: "Authentication failed" },
+      { status: 401 },
+    );
+  }
 
   try {
     if (id) {
@@ -17,9 +29,9 @@ export const GET = jwtAuth(async (request: NextRequest) => {
       } else {
         return NextResponse.json({ error: "Model not found" }, { status: 404 });
       }
-    } else if (userId) {
+    } else if (authenticatedUserId) {
       const models = await prisma.model.findMany({
-        where: { userId: userId },
+        where: { userId: authenticatedUserId },
       });
       return NextResponse.json(models);
     } else {
@@ -38,6 +50,20 @@ export const GET = jwtAuth(async (request: NextRequest) => {
 });
 
 export const POST = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
+  try {
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error creating model:", error);
+    return NextResponse.json(
+      { error: "Failed to create model" },
+      { status: 500 },
+    );
+  }
+
   try {
     const data = await request.json();
     const model = await prisma.model.create({
@@ -56,6 +82,20 @@ export const POST = jwtAuth(async (request: NextRequest) => {
 });
 
 export const PUT = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
+  try {
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error updating model:", error);
+    return NextResponse.json(
+      { error: "Failed to update model" },
+      { status: 500 },
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -88,6 +128,20 @@ export const PUT = jwtAuth(async (request: NextRequest) => {
 });
 
 export const DELETE = jwtAuth(async (request: NextRequest) => {
+  let authenticatedUserId;
+  try {
+    authenticatedUserId = request.user?.id;
+    if (!authenticatedUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    console.error("Error deleting model:", error);
+    return NextResponse.json(
+      { error: "Failed to delete model" },
+      { status: 500 },
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

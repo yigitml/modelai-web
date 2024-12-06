@@ -15,16 +15,31 @@ export function jwtAuth(handler: (req: NextRequest) => Promise<NextResponse>) {
     try {
       const decoded = verify(token, process.env.JWT_SECRET!) as {
         userId: string;
+        email: string;
         isMobile?: boolean;
         deviceId?: string;
       };
 
-      // Add mobile-specific validation if needed
-      if (decoded.isMobile && !decoded.deviceId) {
-        throw new Error("Invalid mobile token");
-      }
+      const requestWithUser = new Request(req.url, {
+        method: req.method,
+        headers: req.headers,
+        body: req.body,
+      }) as NextRequest;
 
-      return handler(req);
+      Object.defineProperties(requestWithUser, {
+        user: {
+          value: {
+            id: decoded.userId,
+            email: decoded.email,
+            isMobile: decoded.isMobile,
+            deviceId: decoded.deviceId,
+          },
+          writable: false,
+          configurable: false,
+        },
+      });
+
+      return handler(requestWithUser);
     } catch (error) {
       console.error("Token verification error:", error);
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {

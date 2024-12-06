@@ -5,23 +5,6 @@ import prisma from "@/lib/prisma";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-/*
-interface MobileAuthResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    avatarUrl: string;
-  };
-}
-*/
-
-// 1. Mobile app initiates Google Sign-In using native SDK
-// 2. Receives Google ID token
-// 3. Sends to your backend endpoint
-
-// New endpoint for mobile authentication
 export async function POST(request: NextRequest) {
   try {
     const { idToken, deviceId } = await request.json();

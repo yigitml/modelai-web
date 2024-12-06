@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getModelById } from "@/lib/replicate";
-//import { verifyWebhookSignature } from "@/utils/webhookVerification";
+import { ipWhitelist } from "@/middleware/ipWhitelist";
+import { verifyWebhookSignature } from "@/utils/webhookVerification";
 
-export async function POST(request: Request) {
+export const POST = ipWhitelist(async (request: Request) => {
   try {
+    const signature = request.headers.get("replicate-signature");
     const body = await request.json();
-    //const signature = request.headers.get("replicate-signature");
+    const payload = JSON.stringify(body);
 
-    /*
-    if (!verifyWebhookSignature(JSON.stringify(body), signature)) {
+    if (!verifyWebhookSignature(payload, signature)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
-    */
 
     const trainingId = body.id;
 
@@ -55,4 +55,4 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-}
+});
