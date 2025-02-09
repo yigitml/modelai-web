@@ -1,8 +1,6 @@
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { withProtectedRoute } from "@/middleware/jwtAuth";
-import { CreateModelRequest as ReplicateCreateModelRequest } from "@/types/replicate/replicateRequest";
-import { createModel } from "@/lib/replicate";
 import { ApiResponse } from "@/types/api/apiResponse";
 import type { 
   ModelPostRequest,

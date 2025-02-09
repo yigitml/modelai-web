@@ -279,8 +279,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem(LOCAL_STORAGE_KEYS.EXPIRES_AT);
     localStorage.removeItem(LOCAL_STORAGE_KEYS.ACTIVE_TAB);
     
-    setState(({
-      isInitialized: false,
+    setState(prevState => ({
+      ...prevState,
       accessToken: null,
       user: null,
       error: null,

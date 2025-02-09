@@ -14,38 +14,53 @@ import { useRouter } from "next/dist/client/components/navigation";
 
 const plans = [
   {
-    name: "Starter",
-    price: "$19.99/month",
-    features: ["100 images/month", "Basic editing tools", "Email support"],
-  },
-  {
-    name: "Pro",
-    price: "$49.99/month",
+    name: "Free",
+    price: "$14.99/month",
     features: [
-      "500 images/month",
-      "Advanced editing tools",
+      "50 AI photos",
+      "Access to legacy models",
       <span
         key="highlight1"
-        className="bg-yellow-400 text-background rounded-full px-2 py-0.5 font-semibold"
+        className="bg-red-400 text-background rounded-full px-2 py-0.5 font-semibold"
       >
-        NEW: Priority support
+        Low Quality Photos
       </span>,
+      <span
+      key="highlight1"
+      className="bg-red-400 text-background rounded-full px-2 py-0.5 font-semibold"
+    >
+      Low Resemblance
+    </span>,
+      "Take 1 photo at a time",
+      "Limited access to premium and ultra packs",
+      "Watermarked photo",
+      "No free auto-generated photos"
     ],
   },
   {
     name: "Premium",
-    price: "$99.99/month",
+    price: "$14.99/month",
     features: [
-      "Unlimited images",
-      "Full feature set",
+      "50 AI photos",
+      "1 AI Model",
       <span
-        key="highlight2"
+        key="highlight1"
         className="bg-yellow-400 text-background rounded-full px-2 py-0.5 font-semibold"
       >
-        NEW: 24/7 dedicated support
+        High Quality Photos
       </span>,
+      <span
+      key="highlight1"
+      className="bg-yellow-400 text-background rounded-full px-2 py-0.5 font-semibold"
+    >
+      High Resemblance
+    </span>,
+      "Take 4 photo at a time",
+      "Full access to packs",
+      "No watermark",
+      "Free auto-generated photos"
     ],
-  },
+  }
 ];
 
 export default function FeaturesPage() {
@@ -70,7 +85,7 @@ export default function FeaturesPage() {
         <h1 className="text-4xl md:text-6xl font-bold mb-12 text-center tracking-tight">
           Choose Your <span className="bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">Plan</span>
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {plans.map((plan) => (
             <Card key={plan.name} className="bg-white/5 backdrop-blur-sm border-0 hover:bg-white/10 transition-all duration-300 hover:scale-105">
               <CardHeader>
@@ -86,19 +101,9 @@ export default function FeaturesPage() {
                   {plan.name}
                 </h2>
                 <p className="text-xl text-gray-400">{plan.price}</p>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <span className="text-sky-500">•</span> {feature}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
+
                 <Button 
-                  className={`w-full font-semibold text-white border-3 border-transparent bg-transparent hover:bg-white/5 transition-all duration-300 ease-in-out transform hover:scale-105 relative
+                  className={`w-full h-16 font-semibold text-white border-3 border-transparent bg-transparent hover:bg-white/5 transition-all duration-300 ease-in-out transform hover:scale-105 relative
                     before:absolute before:inset-0 before:p-[2px] before:rounded-md before:bg-gradient-to-r ${
                       plan.name === "Premium"
                         ? "before:from-sky-500 before:via-purple-500 before:to-pink-500"
@@ -108,8 +113,19 @@ export default function FeaturesPage() {
                     } before:content-[""] before:-z-10 before:mask-button`}
                   onClick={handlePlanSelect}
                 >
-                  Choose {plan.name}
+                  Subscribe
                 </Button>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <span className="text-sky-500">•</span> {feature}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
               </CardFooter>
             </Card>
           ))}
