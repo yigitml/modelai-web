@@ -1,0 +1,187 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                 String        @id @default(cuid())
+  name               String
+  email              String        @unique
+  createdAt          DateTime      @default(now())
+  image              String?
+  googleId           String?
+  models             Model[]
+  photos             Photo[]
+  videos             Video[]
+  photoPredictions   PhotoPrediction[]
+  trainings          Training[]
+  files              File[]
+  credits            UserCredit[]
+  subscription       Subscription?
+  tokenVersion       Int           @default(0)
+  devices            UserDevice[]
+  sessions           UserSession[]
+  lastLoginAt        DateTime?
+  isActive           Boolean       @default(true)
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+  videoPredictions   VideoPrediction[]
+}
+
+model Model {
+  id          String       @id @default(cuid())
+  loraWeights String?
+  name        String
+  description String
+  avatarUrl   String?
+  createdAt   DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String
+  photoPredictions PhotoPrediction[]
+  training    Training?
+  trainingId  String?
+  photos      Photo[]
+  files       File[]
+  deletedAt   DateTime?
+}
+
+model Photo {
+  id            String           @id @default(cuid())
+  url           String
+  createdAt     DateTime        @default(now())
+  model         Model           @relation(fields: [modelId], references: [id])
+  modelId       String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  deletedAt     DateTime?
+  videos        Video[]
+  photoPrediction    PhotoPrediction?     @relation(fields: [photoPredictionId], references: [id])
+  photoPredictionId  String?         @unique
+}
+
+model Video {
+  id        String   @id @default(cuid())
+  url       String
+  photo     Photo    @relation(fields: [photoId], references: [id])
+  photoId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  deletedAt DateTime?
+  videoPrediction VideoPrediction @relation(fields: [videoPredictionId], references: [id])
+  videoPredictionId String @unique
+}
+
+model File {
+  id        String   @id @default(cuid())
+  url       String
+  size      Int
+  photoCount Int?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  model     Model    @relation(fields: [modelId], references: [id])
+  modelId   String
+  deletedAt DateTime?
+}
+
+model Training {
+  id        String   @id @default(cuid())
+  requestId String
+  status    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  model     Model    @relation(fields: [modelId], references: [id])
+  modelId   String   @unique
+}
+
+model PhotoPrediction {
+  id        String   @id @default(cuid())
+  requestId String
+  status    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  model     Model    @relation(fields: [modelId], references: [id])
+  modelId   String
+  photo     Photo?
+}
+
+model VideoPrediction {
+  id        String   @id @default(cuid())
+  requestId String
+  status    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  video     Video?
+}
+
+model UserSession {
+  id           String   @id @default(cuid())
+  sessionId    String
+  lastActivityAt DateTime
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  deletedAt    DateTime?
+
+  @@unique([userId, sessionId])
+}
+
+model UserDevice {
+  id           String   @id @default(cuid())
+  deviceId     String
+  lastLoginAt  DateTime
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  deletedAt    DateTime?
+  
+  @@unique([userId, deviceId])
+}
+
+model Subscription {
+  id           String   @id @default(cuid())
+  name         String   
+  price        Float    
+  credits      UserCredit[]
+  isActive     Boolean   @default(false)
+  durationDays Int      
+  createdAt    DateTime @default(now())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deletedAt    DateTime?
+}
+
+model UserCredit {
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  type           CreditType
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String
+  totalAmount    Int      @default(0)
+  amount         Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  minimumBalance Int      @default(0)
+  deletedAt      DateTime?
+
+  @@unique([userId, type])
+}
+
+enum CreditType {
+  MODEL
+  PHOTO
+  VIDEO
+}
