@@ -8,11 +8,6 @@ export interface AuthMobilePostRequest {
   deviceId: string;
 }
 
-export interface CreditPutRequest {
-  type: "MODEL" | "PHOTO";
-  amount: number;
-}
-
 export interface FileGetRequest {
   id?: string;
 }
@@ -105,6 +100,7 @@ export interface UserPutRequest {
 export interface VideoGetRequest {
   id?: string;
   photoId?: string;
+  modelId?: string;
 }
 
 export interface VideoPostRequest {
@@ -115,10 +111,6 @@ export interface VideoPostRequest {
 export interface VideoPutRequest {
   id: string;
   url?: string;
-}
-
-export interface VideoDeleteRequest {
-  id: string;
 }
 
 export interface VideoPredictionGetRequest {

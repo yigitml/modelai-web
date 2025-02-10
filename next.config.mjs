@@ -9,23 +9,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "replicate.delivery",
-      },
-      {
-        protocol: "https",
-        hostname: "replicate.com",
-      },
-      {
-        protocol: "https",
-        hostname: "tjzk.replicate.delivery",
-      },
-      {
-        protocol: "https",
-        hostname: "pbxt.replicate.delivery",
-      },
-      {
-        protocol: "https",
         hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "v3.fal.media",
       },
     ],
     path: "/_next/image",

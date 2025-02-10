@@ -13,7 +13,6 @@ export interface FileOutput {
  * Input type for the Flux LoRA Portrait Trainer API.
  * 
  * - images_data_url: URL to a zip archive with images of a consistent style (required).
- * - webhook_endpoint: Optional webhook URL to receive callback notifications.
  * - trigger_phrase: Trigger phrase to be used in the captions (optional).
  * - learning_rate: Learning rate to use for training (optional, default: 0.00009).
  * - steps: Number of training steps (optional, default: 2500).
@@ -24,7 +23,6 @@ export interface FileOutput {
  */
 export interface FluxLoraPortraitTrainerInput {
   images_data_url: string;
-  webhook_endpoint?: string;
   trigger_phrase?: string;
   learning_rate?: number;
   steps?: number;
@@ -119,7 +117,6 @@ export interface FluxLoraInput {
   num_images?: number;
   enable_safety_checker?: boolean;
   output_format?: "jpeg" | "png";
-  webhook_endpoint?: string;
 }
 
 /**
@@ -194,3 +191,28 @@ export interface KlingImageToVideoResult {
   data: KlingImageToVideoOutput;
   requestId: string;
 }
+
+/**
+ * Generic type for a webhook request that can handle different payloads.
+ * 
+ * - requestId: The unique identifier for the request.
+ * - gatewayRequestId: The unique identifier for the gateway request.
+ * - status: The status of the request (e.g., "OK", "ERROR").
+ * - payload: The payload of the request, which can be any of the defined output types.
+ */
+export interface FalAIWebhookRequest<T> {
+  request_id: string;
+  gateway_request_id: string;
+  status: string;
+  error?: string;
+  payload: T;
+}
+
+// Example usage with FluxLoraOutput
+type FluxLoraWebhookRequest = FalAIWebhookRequest<FluxLoraOutput>;
+
+// Example usage with KlingImageToVideoOutput
+type KlingImageToVideoWebhookRequest = FalAIWebhookRequest<KlingImageToVideoOutput>;
+
+// Example usage with FluxLoraPortraitTrainerOutput
+type FluxLoraPortraitTrainerWebhookRequest = FalAIWebhookRequest<FluxLoraPortraitTrainerOutput>;

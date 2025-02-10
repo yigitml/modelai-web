@@ -43,26 +43,6 @@ export const GET = withProtectedRoute(async (request: NextRequest) => {
   }
 });
 
-export const POST = withProtectedRoute(async (request: NextRequest) => {
-  try {
-    const authenticatedUserId = request.user!.id;
-    const photoData: PhotoPostRequest = await request.json();
-
-    if (!photoData.url || !photoData.modelId) {
-      return ApiResponse.error("Missing required fields", 400).toResponse();
-    }
-
-    const newPhoto = await prisma.photo.create({
-      data: { ...photoData, userId: authenticatedUserId },
-    });
-
-    return ApiResponse.success(newPhoto, "Photo created successfully", 201).toResponse();
-  } catch (error) {
-    console.error("Error creating photo:", error);
-    return ApiResponse.error("Failed to create photo", 500).toResponse();
-  }
-});
-
 export const PUT = withProtectedRoute(async (request: NextRequest) => {
   try {
     const authenticatedUserId = request.user!.id;

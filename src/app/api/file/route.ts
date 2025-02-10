@@ -85,7 +85,6 @@ export async function POST(request: NextRequest) {
     ).toResponse();
 
   } catch (error) {
-    console.log("vnjf");
     console.error("Error uploading file to fal:", error);
     return ApiResponse.error(
       "Failed to upload file",

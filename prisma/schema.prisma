@@ -41,9 +41,9 @@ model Model {
   createdAt   DateTime     @default(now())
   user        User         @relation(fields: [userId], references: [id])
   userId      String
-  photoPredictions PhotoPrediction[]
   training    Training?
-  trainingId  String?
+  trainingId  String?      @unique
+  photoPredictions PhotoPrediction[]
   photos      Photo[]
   files       File[]
   deletedAt   DateTime?
@@ -55,12 +55,13 @@ model Photo {
   createdAt     DateTime        @default(now())
   model         Model           @relation(fields: [modelId], references: [id])
   modelId       String
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id])
   userId        String
   deletedAt     DateTime?
   videos        Video[]
-  photoPrediction    PhotoPrediction?     @relation(fields: [photoPredictionId], references: [id])
-  photoPredictionId  String?         @unique
+  photoPrediction PhotoPrediction @relation(fields: [photoPredictionId], references: [id])
+  photoPredictionId String
+  videoPredictions VideoPrediction[]
 }
 
 model Video {
@@ -91,7 +92,7 @@ model File {
 
 model Training {
   id        String   @id @default(cuid())
-  requestId String
+  requestId String   @unique
   status    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -104,25 +105,27 @@ model Training {
 
 model PhotoPrediction {
   id        String   @id @default(cuid())
-  requestId String
+  requestId String   @unique
   status    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
+  modelId   String
+  model     Model    @relation(fields: [modelId], references: [id])
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  model     Model    @relation(fields: [modelId], references: [id])
-  modelId   String
-  photo     Photo?
+  photos    Photo[]
 }
 
 model VideoPrediction {
   id        String   @id @default(cuid())
-  requestId String
+  requestId String   @unique
   status    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
+  photoId   String
+  photo     Photo    @relation(fields: [photoId], references: [id])
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   video     Video?
@@ -159,7 +162,7 @@ model Subscription {
   durationDays Int      
   createdAt    DateTime @default(now())
   userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id])
   deletedAt    DateTime?
 }
 

@@ -15,7 +15,7 @@ import { useRouter } from "next/dist/client/components/navigation";
 const plans = [
   {
     name: "Free",
-    price: "$14.99/month",
+    price: "FREE!",
     features: [
       "50 AI photos",
       "Access to legacy models",

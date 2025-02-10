@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useAppContext } from "@/contexts/AppContext";
 import JSZip from "jszip";
 import { Card } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { TrainingPostRequest } from "@/types/api/apiRequest";
 import { Header } from "@/components/Header";
 const MIN_TRAINING_IMAGES = 15;
@@ -22,6 +22,7 @@ export default function NewModelPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [nameError, setNameError] = useState("");
   const [imageError, setImageError] = useState("");
+  const [showNotification, setShowNotification] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +103,7 @@ export default function NewModelPage() {
         fileInputRef.current.value = "";
       }
 
-      alert("Model creation and training started successfully!");
+      setShowNotification(true);
     } catch (error) {
       console.error("Error in model creation process:", error);
     }
@@ -202,6 +203,38 @@ export default function NewModelPage() {
           </Card>
         </form>
       </div>
+
+      {/* Notification Dialog */}
+      <AnimatePresence>
+        {showNotification && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-md w-full shadow-xl"
+            >
+              <h3 className="text-lg font-semibold mb-4 text-white">Model Creation Started!</h3>
+              <p className="text-gray-300 mb-6">
+                This can take up to 5 minutes. Go grab a tea and then come back! 🍵
+              </p>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowNotification(false)}
+                  className="px-4 py-2 bg-sky-500 text-white rounded hover:bg-sky-600 transition-colors"
+                >
+                  Got it!
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

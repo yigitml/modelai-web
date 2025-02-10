@@ -65,11 +65,10 @@ export const POST = withProtectedRoute(async (request: NextRequest) => {
 
     const photoCount = model.files.length === 1 ? model.files[0].photoCount || 0 : 0;
 
-    const webhookUrl = `${process.env.WEBHOOK_DELIVERY_URL}/webhook/flux-lora-trainer`;
+    const webhookUrl = `${process.env.WEBHOOK_DELIVERY_URL}/api/webhook/flux-lora-trainer`;
 
     const input: FluxLoraPortraitTrainerInput = {
       images_data_url: data.inputImages,
-      webhook_endpoint: webhookUrl,
       steps: photoCount !== 0 ? photoCount * 100 : 2000,
     };
 
@@ -79,11 +78,11 @@ export const POST = withProtectedRoute(async (request: NextRequest) => {
       return ApiResponse.error("Insufficient credits", 400).toResponse();
     }
 
-    const result = await requestFluxLoraPortraitTrainer(input, undefined, true);
+    const requestId = await requestFluxLoraPortraitTrainer(input, webhookUrl);
 
     const training = await prisma.training.create({
       data: {
-        requestId: result.requestId,
+        requestId,
         userId: authenticatedUserId,
         modelId: data.modelId,
         createdAt: new Date(),

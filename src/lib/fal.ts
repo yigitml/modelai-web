@@ -27,20 +27,18 @@ export async function uploadFile(file: File): Promise<string> {
  */
 export async function requestFluxLoraPortraitTrainer(
   input: FluxLoraPortraitTrainerInput,
-  onQueueUpdate?: (update: QueueUpdate) => void,
-  logs: boolean = false
-): Promise<FluxLoraPortraitTrainerResult> {
+  webhookUrl: string
+): Promise<string> {
   try {
     fal.config({
       credentials: process.env.FAL_API_KEY
     });
 
-    const result = await fal.subscribe("fal-ai/flux-lora-portrait-trainer", {
+    const { request_id } = await fal.queue.submit("fal-ai/flux-lora-portrait-trainer", {
       input,
-      logs,
-      onQueueUpdate,
+      webhookUrl,
     });
-    return result as FluxLoraPortraitTrainerResult;
+    return request_id;
   } catch (error) {
     console.error("Error requesting Flux LoRA Portrait Trainer:", error);
     throw error;
@@ -57,20 +55,18 @@ export async function requestFluxLoraPortraitTrainer(
  */
 export async function requestFluxLora(
   input: FluxLoraInput,
-  onQueueUpdate?: (update: QueueUpdate) => void,
-  logs: boolean = false
-): Promise<FluxLoraResult> {
+  webhookUrl: string
+): Promise<string> {
   try {
     fal.config({
       credentials: process.env.FAL_API_KEY
     });
 
-    const result = await fal.subscribe("fal-ai/flux-lora", {
+    const { request_id } = await fal.queue.submit("fal-ai/flux-lora", {
       input,
-      logs,
-      onQueueUpdate,
+      webhookUrl,
     });
-    return result as FluxLoraResult;
+    return request_id;
   } catch (error) {
     console.error("Error requesting Flux LoRA:", error);
     throw error;
@@ -92,30 +88,18 @@ export async function requestFluxLora(
  */
 export async function requestKlingImageToVideo(
   input: KlingImageToVideoInput,
-  webhookUrl?: string,
-  onQueueUpdate?: (update: QueueUpdate) => void,
-  logs: boolean = false
-): Promise<KlingImageToVideoResult | { request_id: string }> {
+  webhookUrl: string
+): Promise<string> {
   try {
     fal.config({
       credentials: process.env.FAL_API_KEY
     });
 
-    if (webhookUrl) {
-      // Using a webhook: Submit the job to the queue.
-      return fal.queue.submit("fal-ai/kling-video/v1.6/pro/image-to-video", {
+    const { request_id } = await fal.queue.submit("fal-ai/kling-video/v1.6/pro/image-to-video", {
       input,
       webhookUrl,
     });
-  } else {
-    // Without a webhook: Subscribe and wait for the response with real-time updates.
-    const result = await fal.subscribe("fal-ai/kling-video/v1.6/pro/image-to-video", {
-      input,
-      logs,
-      onQueueUpdate,
-      });
-      return result as KlingImageToVideoResult;
-    }
+    return request_id;
   } catch (error) {
     console.error("Error requesting Kling Image to Video:", error);
     throw error;

@@ -4,7 +4,7 @@ import { ApiResponse } from "@/types/api/apiResponse";
 import { PhotoPredictionPostRequest } from "@/types/api/apiRequest";
 import { requestFluxLora } from "@/lib/fal";
 import prisma from "@/lib/prisma";
-import { FluxLoraInput, LoraWeight } from "@/types/fal";
+import { FluxLoraInput } from "@/types/fal";
 import { consumeUserCredits } from "@/utils/consumeUserCredits";
 import { CreditType } from "@prisma/client";
 
@@ -19,7 +19,7 @@ export const GET = withProtectedRoute(async (request: NextRequest) => {
         where: { userId: authenticatedUserId },
         include: {
           user: { select: { id: true, name: true, email: true } },
-          model: { select: { id: true, name: true, loraWeights: true } },
+          photos: { select: { id: true, url: true } },
         }
       });
       return ApiResponse.success(predictions).toResponse();
@@ -28,7 +28,7 @@ export const GET = withProtectedRoute(async (request: NextRequest) => {
         where: { userId: authenticatedUserId },
         include: {
           user: { select: { id: true, name: true, email: true } },
-          model: { select: { id: true, name: true, loraWeights: true } },
+          photos: { select: { id: true, url: true } },
         }
       });
       return ApiResponse.success(predictions).toResponse();
@@ -68,16 +68,15 @@ export const POST = withProtectedRoute(async (request: NextRequest) => {
       ).toResponse();
     }
 
-    const webhookUrl = `${process.env.WEBHOOK_DELIVERY_URL}/webhook/flux-lora`;
+    const webhookUrl = `${process.env.WEBHOOK_DELIVERY_URL}/api/webhook/flux-lora`;
 
     const input: FluxLoraInput = {
       prompt: data.prompt,
       image_size: "square_hd",
       guidance_scale: data.guidanceScale,
       num_images: data.numOutputs,
-      enable_safety_checker: true,
+      enable_safety_checker: false,
       loras: [{ path: model.loraWeights, scale: 1 }],
-      webhook_endpoint: webhookUrl,
     };
 
     const sufficientCredits = await consumeUserCredits(authenticatedUserId, CreditType.PHOTO, data.numOutputs);
@@ -86,14 +85,13 @@ export const POST = withProtectedRoute(async (request: NextRequest) => {
       return ApiResponse.error("Insufficient credits", 400).toResponse();
     }
 
-    const result = await requestFluxLora(input, undefined, true);
+    const requestId = await requestFluxLora(input, webhookUrl);
 
     const prediction = await prisma.photoPrediction.create({
       data: {
-        requestId: result.requestId,
+        requestId,
         userId: authenticatedUserId,
         modelId: data.modelId,
-        createdAt: new Date(),
       },
     });
 

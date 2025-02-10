@@ -57,32 +57,60 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      await prisma.userCredit.create({
-        data: {
-          userId: user.id,
-          type: "PHOTO",
-          amount: 10,
-          subscriptionId: subscription.id,
-        },
-      });
+      const ballilar = process.env.BALLILAR?.split(",");
+      if (ballilar?.includes(payload.email)) {
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "PHOTO",
+            amount: 20,
+            subscriptionId: subscription.id,
+          },
+        });
 
-      await prisma.userCredit.create({
-        data: {
-          userId: user.id,
-          type: "VIDEO",
-          amount: 1,
-          subscriptionId: subscription.id,
-        },
-      });
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "VIDEO",
+            amount: 0,
+            subscriptionId: subscription.id,
+          },
+        });
 
-      await prisma.userCredit.create({
-        data: {
-          userId: user.id,
-          type: "MODEL",
-          amount: 1,
-          subscriptionId: subscription.id,
-        },
-      });
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "MODEL",
+            amount: 1,
+            subscriptionId: subscription.id,
+          },
+        });
+      } else {
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "MODEL",
+            amount: 0,
+            subscriptionId: subscription.id,
+          },
+        });
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "VIDEO",
+            amount: 0,
+            subscriptionId: subscription.id,
+          },
+        });
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "PHOTO",
+            amount: 0,
+            subscriptionId: subscription.id,
+          },
+        });
+      }
     }
 
     await prisma.userDevice.upsert({

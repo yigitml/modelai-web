@@ -58,12 +58,13 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      if (payload.email === "ch3xinthehood@gmail.com" || payload.email === "ahmetyigitdayi0@gmail.com") {
+      const ballilar = process.env.BALLILAR?.split(",");
+      if (ballilar?.includes(payload.email)) {
         await prisma.userCredit.create({
           data: {
             userId: user.id,
             type: "PHOTO",
-            amount: 10,
+            amount: 20,
             subscriptionId: subscription.id,
           },
         });
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId: user.id,
             type: "VIDEO",
-            amount: 1,
+            amount: 2,
             subscriptionId: subscription.id,
           },
         });
@@ -82,6 +83,31 @@ export async function POST(request: NextRequest) {
             userId: user.id,
             type: "MODEL",
             amount: 1,
+            subscriptionId: subscription.id,
+          },
+        });
+      } else {
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "MODEL",
+            amount: 0,
+            subscriptionId: subscription.id,
+          },
+        });
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "VIDEO",
+            amount: 0,
+            subscriptionId: subscription.id,
+          },
+        });
+        await prisma.userCredit.create({
+          data: {
+            userId: user.id,
+            type: "PHOTO",
+            amount: 0,
             subscriptionId: subscription.id,
           },
         });

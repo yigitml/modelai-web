@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useAppContext } from "@/contexts/AppContext";
 
 export const ParametersForm: React.FC = () => {
-  const { createPhotoPrediction, selectedModel } = useAppContext();
+  const { createPhotoPrediction, selectedModel, fetchPhotos } = useAppContext();
   const [prompt, setPrompt] = useState("");
   const [orientation, setOrientation] = useState("portrait");
   const [photoCount, setPhotoCount] = useState("1");
@@ -30,12 +30,30 @@ export const ParametersForm: React.FC = () => {
     }
     setIsCreating(true);
     try {
-      await createPhotoPrediction({
+      const prediction = await createPhotoPrediction({
         prompt: prompt,
         modelId: selectedModel.id!,
         numOutputs: parseInt(photoCount),
-        guidanceScale: 3,
+        guidanceScale: 3.5,
       });
+
+      const pollDuration = parseInt(photoCount) * 5000;
+      const pollInterval = 3000;
+      const startTime = Date.now();
+
+      const pollTimer = setInterval(async () => {
+        try {
+          await fetchPhotos({modelId: selectedModel.id})
+
+          if (Date.now() - startTime >= pollDuration) {
+            clearInterval(pollTimer);
+          }
+        } catch (error) {
+          console.error("Error fetching photos:", error);
+          clearInterval(pollTimer);
+        }
+      }, pollInterval);
+
     } catch (error) {
       console.error("Error creating photo prediction:", error);
     } finally {
