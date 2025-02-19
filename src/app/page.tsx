@@ -19,12 +19,12 @@ export default function Home() {
   }, [user, accessToken])
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
-      <div className="fixed inset-0 z-0 opacity-40">
+      <div className="fixed inset-0 z-0 opacity-20">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {[...Array(30)].map((_, i) => (
             <Image
               key={i}
-              src={`/images/img_${(i % 15) + 1}.jpeg`}
+              src={`/banner_images/img_${(i % 15) + 1}.jpg`}
               alt={`Background ${i + 1}`}
               width={400}
               height={400}
@@ -42,9 +42,6 @@ export default function Home() {
           <nav className="hidden md:flex items-center gap-8">
             <a href="/features" className="hover:text-sky-500 transition-colors">
               Features
-            </a>
-            <a href="/gallery" className="hover:text-sky-500 transition-colors">
-              Gallery
             </a>
             <GoogleAuthButton
               variant="outline"
@@ -121,16 +118,28 @@ export default function Home() {
               <span className="font-semibold">ModelAI</span>
             </div>
             <div className="flex gap-8 text-sm text-gray-400">
-              <a href="/legal/cookies" className="hover:text-white transition-colors">
+            <a href="/legal/acceptable-use" className="hover:text-white transition-colors">
+                Acceptable Use
+              </a>
+            <a href="/legal/cookies" className="hover:text-white transition-colors">
                 Cookies
+              </a>
+            <a href="/legal/disclaimer" className="hover:text-white transition-colors">
+                Disclaimer
+              </a>
+            <a href="/legal/eula" className="hover:text-white transition-colors">
+                EULA
               </a>
               <a href="/legal/privacy" className="hover:text-white transition-colors">
                 Privacy
               </a>
-              <a href="/legal/terms" className="hover:text-white transition-colors">
-                Terms
+              <a href="/legal/return" className="hover:text-white transition-colors">
+                Return
               </a>
-              <a href="/contact" className="hover:text-white transition-colors">
+              <a href="/legal/tos" className="hover:text-white transition-colors">
+                Terms of Service
+              </a>
+              <a href="/legal/contact" className="hover:text-white transition-colors">
                 Contact
               </a>
             </div>
