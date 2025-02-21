@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 
 export const metadata = {
-  title: 'EULA | ModelAI',
-  description: 'End User License Agreement for ModelAI users.',
+  title: 'EULA | TakeAIPhotos',
+  description: 'End User License Agreement for TakeAIPhotos users.',
 }
 
 export default function EULA() {

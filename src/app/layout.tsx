@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import Providers from "@/app/providers";
 
 export const metadata: Metadata = {
-  title: "ModelAI",
+  title: "TakeAIPhotos",
   description: "Create your own AI models and take photos with them.",
   icons: {
     icon: "/favicon.png",

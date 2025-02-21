@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 
 export const metadata = {
-  title: 'Return Policy | ModelAI',
-  description: 'Return policy for ModelAI users.',
+  title: 'Return Policy | TakeAIPhotos',
+  description: 'Return policy for TakeAIPhotos users.',
 }
 
 export default function ReturnPolicy() {

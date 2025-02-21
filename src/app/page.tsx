@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react";
 import { Card } from "@/components/ui/card"
 import { Camera, Video, Sparkles, Upload, Heart } from "lucide-react"
 import GoogleAuthButton from "@/components/GoogleAuthButton"
@@ -37,17 +38,22 @@ export default function Home() {
       <div className="relative z-10">
         <header className="container mx-auto px-4 py-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold">ModelAI</span>
+              <span
+                className="text-2xl font-bold cursor-pointer"
+                onClick={() => router.push("/home")}
+              >
+                TakeAIPhotos
+              </span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
-            <a href="/features" className="hover:text-sky-500 transition-colors">
-              Features
-            </a>
-            <GoogleAuthButton
-              variant="outline"
-              size="default"
-              onClick={() => {router.push("/auth/signin")}}
-            />
+              <a href="/features" className="hover:text-sky-500 transition-colors">
+                Features
+              </a>
+              <GoogleAuthButton
+                variant="outline"
+                size="default"
+                onClick={() => router.push("/auth/signin")}
+              />
           </nav>
         </header>
 
@@ -61,17 +67,17 @@ export default function Home() {
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
               Create stunning photos with
-              <span className="ml-2 font-bold bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 text-transparent bg-clip-text selection:text-transparent selection:bg-clip-text">ModelAI</span>
+              <span className="ml-2 font-bold bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 text-transparent bg-clip-text selection:text-transparent selection:bg-clip-text">TakeAIPhotos</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
               Generate professional-quality photos in seconds. No expensive equipment or photography skills needed.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-              <GoogleAuthButton
-                variant="gradient"
-                size="lg"
-                onClick={() => {router.push("/auth/signin")}}
-              />
+                <GoogleAuthButton
+                  variant="gradient"
+                  size="lg"
+                  onClick={() => router.push("/auth/signin")}
+                />
             </div>
           </div>
         </section>
@@ -114,8 +120,8 @@ export default function Home() {
         <footer className="container mx-auto px-4 py-12 border-t border-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="flex items-center gap-2">
-              <Image src="/favicon.png" alt="ModelAI Logo" width={32} height={32} />
-              <span className="font-semibold">ModelAI</span>
+              <Image src="/favicon.png" alt="TakeAIPhotos Logo" width={32} height={32} />
+              <span className="font-semibold">TakeAIPhotos</span>
             </div>
             <div className="flex gap-8 text-sm text-gray-400">
             <a href="/legal/acceptable-use" className="hover:text-white transition-colors">
@@ -133,9 +139,11 @@ export default function Home() {
               <a href="/legal/privacy" className="hover:text-white transition-colors">
                 Privacy
               </a>
+              {/*
               <a href="/legal/return" className="hover:text-white transition-colors">
                 Return
               </a>
+              */}
               <a href="/legal/tos" className="hover:text-white transition-colors">
                 Terms of Service
               </a>
@@ -144,7 +152,7 @@ export default function Home() {
               </a>
             </div>
             <div className="text-sm text-gray-400">
-              ©{new Date().getFullYear()} ModelAI. All rights reserved.
+              ©{new Date().getFullYear()} TakeAIPhotos. All rights reserved.
             </div>
           </div>
         </footer>

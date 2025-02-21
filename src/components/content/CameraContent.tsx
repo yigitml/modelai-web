@@ -1,16 +1,20 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useAppContext } from "@/contexts/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
+import UnifiedDialog from "@/components/UnifiedDialog";
+import OnboardingOverlay from "@/components/OnboardingOverlay";
 
 export default function CameraContent() {
-  const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
-  const [selectedVideos, setSelectedVideos] = React.useState<any[]>([]);
-  const [selectedVideoIndex, setSelectedVideoIndex] = React.useState<number>(0);
-  const [showNotification, setShowNotification] = React.useState(false);
-  
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedVideos, setSelectedVideos] = useState<any[]>([]);
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState<number>(0);
+  const [showNotification, setShowNotification] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [currentPhotoId, setCurrentPhotoId] = useState<string | null>(null);
+
   const { 
     selectedModel, 
     photos, 
@@ -29,18 +33,18 @@ export default function CameraContent() {
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setSelectedImage(null);
         setSelectedVideos([]);
       }
     };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
   const photoVideosMap = useMemo(() => {
     const map = new Map();
-    videos.forEach(video => {
+    videos.forEach((video) => {
       if (video.photoId) {
         if (!map.has(video.photoId)) {
           map.set(video.photoId, []);
@@ -58,7 +62,7 @@ export default function CameraContent() {
       url: photo.url,
       status: "completed" as const,
       hasVideos: photoVideosMap.has(photo.id),
-      videoCount: photoVideosMap.get(photo.id)?.length || 0
+      videoCount: photoVideosMap.get(photo.id)?.length || 0,
     }));
 
   const allItems = [...sortedPhotos].sort((a, b) => {
@@ -88,7 +92,7 @@ export default function CameraContent() {
                     <div onClick={() => setSelectedImage(item.url)} className="cursor-pointer">
                       <Image
                         src={item.url}
-                        alt={`Generated image`}
+                        alt="Generated image"
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover"
@@ -104,18 +108,13 @@ export default function CameraContent() {
                         }}
                         className="absolute bottom-2 left-2 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm transition-all duration-300"
                       >
-                        Watch Video{item.videoCount > 1 ? 's' : ''} ({item.videoCount})
+                        Watch Video{item.videoCount > 1 ? "s" : ""} ({item.videoCount})
                       </button>
                     ) : (
                       <button
                         onClick={() => {
-                          createVideoPrediction({ 
-                            photoId: item.id, 
-                            prompt: "", 
-                            duration: "5", 
-                            aspectRatio: "16:9" 
-                          });
-                          setShowNotification(true);
+                          setCurrentPhotoId(item.id);
+                          setVideoDialogOpen(true);
                         }}
                         className="absolute bottom-2 left-2 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm transition-all duration-300"
                       >
@@ -130,7 +129,75 @@ export default function CameraContent() {
         </div>
       </div>
 
-      {/* Add Video Modal */}
+      <UnifiedDialog
+        open={videoDialogOpen}
+        onClose={() => setVideoDialogOpen(false)}
+        title="Create Video"
+        description="Enter a prompt for the video prediction."
+        inputs={[
+          {
+            name: "prompt",
+            label: "Video Prompt",
+            placeholder: "Enter video prompt here",
+          },
+        ]}
+        confirmText="Submit"
+        cancelText="Cancel"
+        onConfirm={(values) => {
+          if (currentPhotoId) {
+            createVideoPrediction({
+              photoId: currentPhotoId,
+              prompt: values?.prompt || "",
+              duration: "5",
+              aspectRatio: "16:9",
+            });
+            setVideoDialogOpen(false);
+            setShowNotification(true);
+          }
+        }}
+      />
+
+      <UnifiedDialog
+        open={showNotification}
+        onClose={() => setShowNotification(false)}
+        title="Video Creation Started!"
+        description="This can take up to 5 minutes. Go grab a tea and then come back! 🍵"
+        confirmText="Got it!"
+      />
+
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="relative w-[90vw] h-[90vh]"
+            >
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+              >
+                ✕
+              </button>
+              <Image
+                src={selectedImage}
+                alt="Selected image"
+                fill
+                className="object-contain"
+                priority={true}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {selectedVideos.length > 0 && (
           <motion.div
@@ -166,7 +233,7 @@ export default function CameraContent() {
                       key={index}
                       onClick={() => setSelectedVideoIndex(index)}
                       className={`w-3 h-3 rounded-full ${
-                        index === selectedVideoIndex ? 'bg-white' : 'bg-white/50'
+                        index === selectedVideoIndex ? "bg-white" : "bg-white/50"
                       }`}
                     />
                   ))}
@@ -177,71 +244,7 @@ export default function CameraContent() {
         )}
       </AnimatePresence>
 
-      {/* Image Modal */}
-      <AnimatePresence>
-        {selectedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedImage(null)}
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="relative w-[90vw] h-[90vh]"
-            >
-              <button
-                onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
-              >
-                ✕
-              </button>
-              <Image
-                src={selectedImage}
-                alt="Selected image"
-                fill
-                className="object-contain"
-                priority={true}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Notification Dialog */}
-      <AnimatePresence>
-        {showNotification && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-md w-full shadow-xl"
-            >
-              <h3 className="text-lg font-semibold mb-4 text-white">Video Creation Started!</h3>
-              <p className="text-gray-300 mb-6">
-                This can take up to 5 minutes. Go grab a tea and then come back! 🍵
-              </p>
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setShowNotification(false)}
-                  className="px-4 py-2 bg-sky-500 text-white rounded hover:bg-sky-600 transition-colors"
-                >
-                  Got it!
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Onboarding tour overlay */}
     </>
   );
 }

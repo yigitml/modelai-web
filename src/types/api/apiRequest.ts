@@ -95,6 +95,9 @@ export interface UserPostRequest {
 export interface UserPutRequest {
   name?: string;
   image?: string;
+  isOnboarded?: boolean;
+  isFirstModelCreated?: boolean;
+  isTourCompleted?: boolean;
 }
 
 export interface VideoGetRequest {

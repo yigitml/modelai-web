@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 
 export const metadata = {
-  title: 'Terms of Service | ModelAI',
-  description: 'Terms of service for ModelAI users.',
+  title: 'Terms of Service | TakeAIPhotos',
+  description: 'Terms of service for TakeAIPhotos users.',
 }
 
 export default function TermsOfService() {

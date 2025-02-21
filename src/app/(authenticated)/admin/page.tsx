@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 
 type EntityType = "user" | "model" | "photo" | "video" | "file" | "subscription" | "userCredit" | "training" | "photoPrediction" | "videoPrediction" | "userSession" | "userDevice";
 
@@ -297,83 +298,86 @@ export default function AdminPage() {
   };
 
   return (
-    <>
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Admin Panel</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="p-4">
-              <div className="flex flex-col gap-4 mb-4">
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "user",
-                    "model",
-                    "photo",
-                    "video",
-                    "file",
-                    "subscription",
-                    "userCredit",
-                    "training",
-                    "photoPrediction",
-                    "videoPrediction",
-                    "userSession",
-                    "userDevice",
-                  ].map((entity) => (
-                    <Button
-                      key={entity}
-                      variant={selectedEntity === entity ? "default" : "outline"}
-                      onClick={() => setSelectedEntity(entity as EntityType)}
-                      className="capitalize"
+    <AuthenticatedLayout>
+      <div>
+      <div>
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Admin Panel</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="p-4">
+                <div className="flex flex-col gap-4 mb-4">
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      "user",
+                      "model",
+                      "photo",
+                      "video",
+                      "file",
+                      "subscription",
+                      "userCredit",
+                      "training",
+                      "photoPrediction",
+                      "videoPrediction",
+                      "userSession",
+                      "userDevice",
+                    ].map((entity) => (
+                      <Button
+                        key={entity}
+                        variant={selectedEntity === entity ? "default" : "outline"}
+                        onClick={() => setSelectedEntity(entity as EntityType)}
+                        className="capitalize"
+                      >
+                        {entity.replace(/([A-Z])/g, ' $1').trim()}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <Input
+                    placeholder="Search all fields..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm"
+                  />
+
+                  <div className="flex gap-2">
+                    <Select
+                      value={filterProperty}
+                      onValueChange={setFilterProperty}
                     >
-                      {entity.replace(/([A-Z])/g, ' $1').trim()}
-                    </Button>
-                  ))}
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Filter by property" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">None</SelectItem>
+                        {getAvailableProperties().map((prop) => (
+                          <SelectItem key={prop} value={prop}>
+                            {prop}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {filterProperty && filterProperty !== "_none" && (
+                      <Input
+                        placeholder={`Filter by ${filterProperty}...`}
+                        value={filterValue}
+                        onChange={(e) => setFilterValue(e.target.value)}
+                        className="flex-1"
+                      />
+                    )}
+                  </div>
                 </div>
-
-                <Input
-                  placeholder="Search all fields..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="max-w-sm"
-                />
-
-                <div className="flex gap-2">
-                  <Select
-                    value={filterProperty}
-                    onValueChange={setFilterProperty}
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Filter by property" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="_none">None</SelectItem>
-                      {getAvailableProperties().map((prop) => (
-                        <SelectItem key={prop} value={prop}>
-                          {prop}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {filterProperty && filterProperty !== "_none" && (
-                    <Input
-                      placeholder={`Filter by ${filterProperty}...`}
-                      value={filterValue}
-                      onChange={(e) => setFilterValue(e.target.value)}
-                      className="flex-1"
-                    />
-                  )}
+                
+                <div className="w-full">
+                  {renderTable()}
                 </div>
               </div>
-              
-              <div className="w-full">
-                {renderTable()}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -454,6 +458,7 @@ export default function AdminPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+      </div>
+    </AuthenticatedLayout>
   );
 }

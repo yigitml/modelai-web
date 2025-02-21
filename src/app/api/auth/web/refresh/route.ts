@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLoginAt: new Date(),
+      },
+    });
+
     const newJwtToken = jwt.sign(
       {
         userId: user.id,

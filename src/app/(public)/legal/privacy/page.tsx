@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 
 export const metadata = {
-  title: 'Privacy Policy | ModelAI',
-  description: 'Privacy policy and data protection information for ModelAI users.',
+  title: 'Privacy Policy | TakeAIPhotos',
+  description: 'Privacy policy and data protection information for TakeAIPhotos users.',
 }
 
 export default function PrivacyPolicy() {

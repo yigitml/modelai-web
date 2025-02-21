@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 
 export const metadata = {
-  title: 'Disclaimer | ModelAI',
-  description: 'Disclaimer for ModelAI users.',
+  title: 'Disclaimer | TakeAIPhotos',
+  description: 'Disclaimer for TakeAIPhotos users.',
 }
 
 export default function Disclaimer() {

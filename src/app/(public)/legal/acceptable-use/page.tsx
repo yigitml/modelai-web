@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 
 export const metadata = {
-  title: 'Acceptable Use Policy | ModelAI',
-  description: 'Acceptable use policy for ModelAI users.',
+  title: 'Acceptable Use Policy | TakeAIPhotos',
+  description: 'Acceptable use policy for TakeAIPhotos users.',
 }
 
 export default function AcceptableUsePolicy() {

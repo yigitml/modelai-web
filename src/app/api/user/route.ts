@@ -31,13 +31,16 @@ export const PUT = withProtectedRoute(async (request: NextRequest) => {
     const authenticatedUserId = request.user!.id;
     const body: UserPutRequest = await request.json();
 
-    if (!body.name && !body.image) {
+    if (!body.name && !body.image && !body.isOnboarded && !body.isTourCompleted && !body.isFirstModelCreated) {
       return ApiResponse.error("No fields to update", 400).toResponse();
     }
 
     const updateData: Partial<UserPutRequest> = {};
     if (body.name) updateData.name = body.name;
     if (body.image) updateData.image = body.image;
+    if (body.isOnboarded) updateData.isOnboarded = body.isOnboarded;
+    if (body.isTourCompleted) updateData.isTourCompleted = body.isTourCompleted;
+    if (body.isFirstModelCreated) updateData.isFirstModelCreated = body.isFirstModelCreated;
 
     const updatedUser = await prisma.user.update({
       where: { id: authenticatedUserId },

@@ -57,36 +57,6 @@ export async function POST(request: NextRequest) {
           isActive: true,
         },
       });
-
-      const ballilar = process.env.BALLILAR?.split(",");
-      if (ballilar?.includes(payload.email)) {
-        await prisma.userCredit.create({
-          data: {
-            userId: user.id,
-            type: "PHOTO",
-            amount: 20,
-            subscriptionId: subscription.id,
-          },
-        });
-
-        await prisma.userCredit.create({
-          data: {
-            userId: user.id,
-            type: "VIDEO",
-            amount: 2,
-            subscriptionId: subscription.id,
-          },
-        });
-
-        await prisma.userCredit.create({
-          data: {
-            userId: user.id,
-            type: "MODEL",
-            amount: 1,
-            subscriptionId: subscription.id,
-          },
-        });
-      } else {
         await prisma.userCredit.create({
           data: {
             userId: user.id,
@@ -111,8 +81,8 @@ export async function POST(request: NextRequest) {
             subscriptionId: subscription.id,
           },
         });
-      }
     }
+    
 
     await prisma.userSession.upsert({
       where: {
@@ -128,6 +98,13 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         sessionId: sessionId,
         lastActivityAt: new Date(),
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLoginAt: new Date(),
       },
     });
 

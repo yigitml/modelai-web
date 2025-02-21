@@ -11,7 +11,7 @@ import CameraContent from "@/components/content/CameraContent";
 import ModelsContent from "@/components/content/ModelsContent";
 import DeletedContent from "@/components/content/DeletedContent";
 
-const ModelAI: React.FC = () => {
+const TakeAIPhotos: React.FC = () => {
   const { activeTab, setActiveTab, tabs } = useAppContext();
   
   const renderContent = () => {
@@ -78,4 +78,4 @@ const ModelAI: React.FC = () => {
   );
 };
 
-export default ModelAI;
+export default TakeAIPhotos;

@@ -7,14 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAppContext } from "@/contexts/AppContext";
 import { Header } from "@/components/Header";
+import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const { user, credits } = useAppContext();
+  const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header />
+    <AuthenticatedLayout>
       <div className="min-h-screen bg-black text-white">
+        <Header />
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -22,9 +25,9 @@ export default function ProfilePage() {
           className="max-w-4xl mx-auto"
         >
           <div className="container mx-auto px-4 py-8">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight">
               Your <span className="bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500 text-transparent bg-clip-text animate-flow">Profile</span>
-          </h1>
+            </h1>
             <p className="text-gray-400 mb-8">You can manage your account, billing, and team settings here.</p>
 
             <div className="grid gap-6">
@@ -81,14 +84,32 @@ export default function ProfilePage() {
               <div className="bg-zinc-900/50 rounded-lg p-6 border border-white/10">
                 <h2 className="text-xl font-semibold mb-4">Credits</h2>
                 <div className="space-y-4">
-                  {credits.map((credit) => (
-                    <div key={credit.type} className="flex justify-between items-center">
-                      <span className="text-gray-400">{credit.type.charAt(0).toUpperCase() + credit.type.slice(1).toLowerCase()}</span>
-                      <span className="text-xl font-semibold">{credit.amount}</span>
-                    </div>
-                  ))}
+                  {credits.map((credit) => {
+                    const percentage = (credit.amount / credit.totalAmount) * 100;
+                    return (
+                      <div key={credit.type} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400">
+                            {credit.type.charAt(0).toUpperCase() + credit.type.slice(1).toLowerCase()}
+                          </span>
+                          <span className="text-xl font-semibold">
+                            {credit.amount}/{credit.totalAmount}
+                          </span>
+                        </div>
+                        <div className="w-full bg-zinc-800 rounded-full h-3">
+                          <div
+                            className="bg-emerald-500 h-3 rounded-full"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="mt-6 bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20 hover:bg-emerald-900/30 transition-colors cursor-pointer">
+                <div
+                  className="mt-6 bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20 hover:bg-emerald-900/30 transition-colors cursor-pointer"
+                  onClick={() => router.push("/credits")}
+                >
                   <div className="flex items-center gap-3">
                     <PlusCircle className="h-5 w-5 text-emerald-500" />
                     <span className="text-emerald-500 font-medium">Buy More Credits</span>
@@ -99,7 +120,7 @@ export default function ProfilePage() {
           </div>
         </motion.div>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 }
 

@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 
 export const metadata = {
-  title: 'Cookies Policy | ModelAI',
-  description: 'Cookies policy for ModelAI users.',
+  title: 'Cookies Policy | TakeAIPhotos',
+  description: 'Cookies policy for TakeAIPhotos users.',
 }
 
 export default function CookiesPolicy() {

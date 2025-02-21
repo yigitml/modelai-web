@@ -11,6 +11,7 @@ import CameraContent from "@/components/content/CameraContent";
 import ModelsContent from "@/components/content/ModelsContent";
 import DeletedContent from "@/components/content/DeletedContent";
 import { Header } from "@/components/Header";
+import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 
 export default function HomePage() {
   const { activeTab, setActiveTab, tabs } = useAppContext();
@@ -33,9 +34,10 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground px-2 sm:px-4">
-      <Header />
-      <div className="flex-grow overflow-hidden">
+    <AuthenticatedLayout>
+      <div className="flex flex-col min-h-screen bg-background text-foreground px-2 sm:px-4">
+        <Header />
+        <div className="flex-grow overflow-hidden">
         <div className="h-full flex flex-col lg:flex-row gap-4">
           <div className="flex flex-col w-full lg:w-1/4">
             <div className="container mx-auto px-4 py-4">
@@ -74,8 +76,9 @@ export default function HomePage() {
               {renderContent()}
             </div>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 }

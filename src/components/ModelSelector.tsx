@@ -111,16 +111,16 @@ export const ModelSelector: React.FC = () => {
                   ) : (
                     <div className="col-span-full text-center space-y-4 p-4">
                       <div>No models available</div>
-
-                      <Button 
-                        variant="outline" 
-                        className="flex w-full h-16 items-center text-sm sm:text-base px-2 sm:px-4"
-                        onClick={() => {router.push("/new-model")}}
-                      >
-                        <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                        <span className="hidden sm:inline bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 text-transparent bg-clip-text animate-flow">New Model</span>
-                        <span className="sm:hidden">New</span>
-                      </Button> 
+                        <Button
+                          variant="outline"
+                          className="flex w-full h-16 items-center text-sm sm:text-base px-2 sm:px-4"
+                          onClick={() => router.push("/new-model")}
+                        >
+                          <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          <span className="bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 text-transparent bg-clip-text animate-flow">
+                            New Model
+                          </span>
+                        </Button>
                     </div>
                   )}
                 </div>
