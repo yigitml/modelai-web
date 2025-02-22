@@ -230,6 +230,12 @@ export default function NewModelPage() {
         throw new Error("Failed to create training");
       }
     } catch (error) {
+      UnifiedDialog({
+        open: true,
+        onClose: () => {},
+        title: "Error",
+        description: "Error creating model: " + error,
+      });
       console.error("Error in model creation process:", error);
     }
   };

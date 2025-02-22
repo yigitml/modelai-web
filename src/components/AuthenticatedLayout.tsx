@@ -16,9 +16,10 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
 
   useEffect(() => {
     const fetchUserAndRedirect = async () => {
-      const user = await fetchUser();
-      if (!user || !accessToken) {
-        router.push("/unauthorized");
+      try {
+        const user = await fetchUser();
+        if (!user || !accessToken) {
+          router.push("/unauthorized");
         return;
       }
 
@@ -29,7 +30,11 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
 
       if (user.isOnboarded && !user.isFirstModelCreated) {
         router.push("/new-model");
-        return;
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        router.push("/unauthorized");
       }
     };
 

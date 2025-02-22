@@ -21,7 +21,8 @@ export default function CameraContent() {
     videos, 
     fetchPhotos, 
     fetchVideos,
-    createVideoPrediction 
+    createVideoPrediction,
+    fetchCredits
   } = useAppContext();
 
   useEffect(() => {
@@ -71,6 +72,23 @@ export default function CameraContent() {
     }
     return 0;
   });
+
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
 
   return (
     <>
@@ -143,16 +161,27 @@ export default function CameraContent() {
         ]}
         confirmText="Submit"
         cancelText="Cancel"
-        onConfirm={(values) => {
+        onConfirm={async (values) => {
           if (currentPhotoId) {
-            createVideoPrediction({
-              photoId: currentPhotoId,
-              prompt: values?.prompt || "",
-              duration: "5",
-              aspectRatio: "16:9",
+            try {
+              await createVideoPrediction({
+                photoId: currentPhotoId,
+                prompt: values?.prompt || "",
+                duration: "5",
+                aspectRatio: "16:9",
             });
+            fetchCredits();
             setVideoDialogOpen(false);
             setShowNotification(true);
+            } catch (error) {
+              console.error("Error creating video prediction:", error);
+              UnifiedDialog({
+                open: true,
+                onClose: () => {},
+                title: "Error",
+                description: "Error creating video prediction: " + error,
+              });
+            }
           }
         }}
       />
@@ -180,12 +209,23 @@ export default function CameraContent() {
               exit={{ scale: 0.8 }}
               className="relative w-[90vw] h-[90vh]"
             >
-              <button
-                onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
-              >
-                ✕
-              </button>
+              <div className="absolute top-4 right-4 z-10 flex gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownload(selectedImage, 'photo.png');
+                  }}
+                  className="bg-black/50 hover:bg-black/70 text-white px-4 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                >
+                  Download
+                </button>
+                <button
+                  onClick={() => setSelectedImage(null)}
+                  className="bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                >
+                  ✕
+                </button>
+              </div>
               <Image
                 src={selectedImage}
                 alt="Selected image"
@@ -214,12 +254,23 @@ export default function CameraContent() {
               onClick={(e) => e.stopPropagation()}
               className="relative w-[90vw] h-[90vh]"
             >
-              <button
-                onClick={() => setSelectedVideos([])}
-                className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
-              >
-                ✕
-              </button>
+              <div className="absolute top-4 right-4 z-10 flex gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownload(selectedVideos[selectedVideoIndex]?.url, 'video.mp4');
+                  }}
+                  className="bg-black/50 hover:bg-black/70 text-white px-4 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                >
+                  Download
+                </button>
+                <button
+                  onClick={() => setSelectedVideos([])}
+                  className="bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                >
+                  ✕
+                </button>
+              </div>
               <video
                 src={selectedVideos[selectedVideoIndex]?.url}
                 className="w-full h-full object-contain"

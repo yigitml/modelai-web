@@ -9,6 +9,10 @@ import { fal } from "@fal-ai/client";
  */
 export async function uploadFile(file: File): Promise<string> {
   try {
+    fal.config({
+      credentials: process.env.FAL_API_KEY
+    });
+
     const url = await fal.storage.upload(file);
     return url;
   } catch (error) {

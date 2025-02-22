@@ -72,7 +72,10 @@ export const POST = withProtectedRoute(async (request: NextRequest) => {
 
     const input: FluxLoraInput = {
       prompt: data.prompt,
-      image_size: "square_hd",
+      image_size: {
+        width: 1400,
+        height: 1400,
+      },
       guidance_scale: data.guidanceScale,
       num_images: data.numOutputs,
       enable_safety_checker: false,

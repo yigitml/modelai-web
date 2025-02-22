@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useAppContext } from "@/contexts/AppContext";
+import UnifiedDialog from "./UnifiedDialog";
 
 export const ParametersForm: React.FC = () => {
-  const { createPhotoPrediction, selectedModel, fetchPhotos } = useAppContext();
+  const { createPhotoPrediction, selectedModel, fetchPhotos, fetchCredits } = useAppContext();
   const [prompt, setPrompt] = useState("");
   const [orientation, setOrientation] = useState("portrait");
   const [photoCount, setPhotoCount] = useState("1");
@@ -30,14 +31,14 @@ export const ParametersForm: React.FC = () => {
     }
     setIsCreating(true);
     try {
-      const prediction = await createPhotoPrediction({
+      await createPhotoPrediction({
         prompt: prompt,
         modelId: selectedModel.id!,
         numOutputs: parseInt(photoCount),
         guidanceScale: 3.5,
       });
 
-      const pollDuration = parseInt(photoCount) * 5000;
+      const pollDuration = parseInt(photoCount) * 12000;
       const pollInterval = 3000;
       const startTime = Date.now();
 
@@ -54,8 +55,16 @@ export const ParametersForm: React.FC = () => {
         }
       }, pollInterval);
 
+      fetchCredits();
+
     } catch (error) {
       console.error("Error creating photo prediction:", error);
+      UnifiedDialog({
+        open: true,
+        onClose: () => {},
+        title: "Error",
+        description: "Error creating photo prediction: " + error,
+      });
     } finally {
       setIsCreating(false);
     }
