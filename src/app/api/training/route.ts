@@ -69,7 +69,10 @@ export const POST = withProtectedRoute(async (request: NextRequest) => {
 
     const input: FluxLoraPortraitTrainerInput = {
       images_data_url: data.inputImages,
-      steps: photoCount !== 0 ? photoCount * 100 : 2000,
+      subject_crop: true,
+      steps: photoCount !== 0 ? photoCount * 80 : 2000,
+      learning_rate: 0.00009,
+      multiresolution_training: true,
     };
 
     const sufficientCredits = await consumeUserCredits(authenticatedUserId, CreditType.MODEL, 1);
