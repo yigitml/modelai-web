@@ -263,7 +263,7 @@ export default function NewModelPage() {
   return (
     <AuthenticatedLayout>
       <div>
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen bg-background text-foreground">
           <Header />
           <div className="container mx-auto px-4 py-4">
             <h1 className="text-4xl md:text-6xl font-bold mb-12 text-center tracking-tight">

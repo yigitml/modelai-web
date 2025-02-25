@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId: user.id,
             type: "MODEL",
+            totalAmount: 1,
             amount: 0,
             subscriptionId: subscription.id,
           },
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId: user.id,
             type: "VIDEO",
+            totalAmount: 5,
             amount: 0,
             subscriptionId: subscription.id,
           },
@@ -77,6 +79,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId: user.id,
             type: "PHOTO",
+            totalAmount: 150,
             amount: 0,
             subscriptionId: subscription.id,
           },

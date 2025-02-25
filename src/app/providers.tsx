@@ -22,8 +22,8 @@ export default function Providers({ children }: ProvidersProps) {
           <QueryClientProvider client={queryClient}>
             <NextThemesProvider
               attribute="class"
-              defaultTheme="system"
-              enableSystem={true}
+              defaultTheme="dark"
+              enableSystem={false}
             >
               {children}
             </NextThemesProvider>

@@ -44,6 +44,7 @@ export interface ModelDeleteRequest {
 export interface PhotoGetRequest {
   id?: string;
   modelId?: string;
+  isDeleted?: boolean;
 }
 
 export interface PhotoPostRequest {
@@ -54,6 +55,7 @@ export interface PhotoPostRequest {
 export interface PhotoPutRequest {
   id: string;
   url?: string;
+  isDeleted?: boolean;
 }
 
 export interface PhotoDeleteRequest {

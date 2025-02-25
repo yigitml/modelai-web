@@ -82,6 +82,7 @@ interface AppContextType extends AppState {
   fetchPhotos: (params?: PhotoGetRequest) => Promise<Photo[]>;
   uploadPhoto: (data: PhotoPostRequest) => Promise<Photo>;
   selectPhoto: (photo: Photo) => Promise<void>;
+  updatePhoto: (data: PhotoPutRequest) => Promise<Photo>;
   deletePhoto: (data: PhotoDeleteRequest) => Promise<void>;
 
   fetchVideos: (params?: VideoGetRequest) => Promise<Video[]>;
@@ -145,7 +146,7 @@ const createApiClient = (getToken: () => string | null) => {
       
       try {
         const errorData = await response.json();
-        errorMessage = errorData.message || `${response.status} ${response.statusText}`;
+        errorMessage = errorData.message || errorData.error || `${response.status} ${response.statusText}`;
       } catch (e) {
         errorMessage = `${response.status} ${response.statusText}`;
       }
@@ -155,7 +156,7 @@ const createApiClient = (getToken: () => string | null) => {
       // @ts-ignore
       error.status = response.status;
       
-      console.error(`API Error (${response.status}):`, {
+      console.error(`API Error (${errorMessage}):`, {
         endpoint: response.url,
         message: errorMessage,
         status: response.status
@@ -263,8 +264,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [api]);
   
   const setActiveTab = useCallback((tab: string) => {
-    setState(prevState => ({ ...prevState, activeTab: tab }));
-    localStorage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_TAB, tab);
+    setState(prevState => {
+      const newState = { ...prevState, activeTab: tab };
+      localStorage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_TAB, tab);
+      return newState;
+    });
   }, []);
 
   const login = useCallback(async (data: AuthWebPostRequest) => {
@@ -302,33 +306,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [api]);
 
   const fetchUser = useCallback(async () => {
-    const response = await api.get(API_ENDPOINTS.USER);
-    setState(prevState => ({ ...prevState, user: response.data }));
-    fetchModels();
-    fetchCredits();
-    fetchVideos();
-    return response.data;
+    try {
+      const response = await api.get(API_ENDPOINTS.USER);
+      setState(prevState => ({ ...prevState, user: response.data }));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }, [api]);
 
   const updateUser = useCallback(async (data: UserPutRequest) => {
-    const response = await api.put(API_ENDPOINTS.USER, data);
-    setState(prevState => ({ ...prevState, user: response.data }));
-    return response.data;
+    try {
+      const response = await api.put(API_ENDPOINTS.USER, data);
+      setState(prevState => ({ ...prevState, user: response.data }));
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }, [api]);
 
   const fetchModels = useCallback(async (params?: ModelGetRequest) => {
-    const response = await api.get(API_ENDPOINTS.MODEL, params);
-    const models = response.data;
-    const savedModelId = localStorage.getItem(LOCAL_STORAGE_KEYS.SELECTED_MODEL_ID);
-    const selectedModel = models.find((model: Model) => model.id === savedModelId);
-    setState(prevState => ({ ...prevState, models: models, selectedModel: selectedModel }));
-    return response.data;
+    try {
+      const response = await api.get(API_ENDPOINTS.MODEL, params);
+      const models = response.data;
+      const savedModelId = localStorage.getItem(LOCAL_STORAGE_KEYS.SELECTED_MODEL_ID);
+      let selectedModel = models.find((model: Model) => model.id === savedModelId);
+      
+      if (!selectedModel && models.length > 0) {
+        selectedModel = models[0];
+        localStorage.setItem(LOCAL_STORAGE_KEYS.SELECTED_MODEL_ID, selectedModel.id);
+      }
+      
+      setState(prevState => ({ 
+        ...prevState, 
+        models: models, 
+        selectedModel: selectedModel 
+      }));
+      
+      return models;
+    } catch (error) {
+      throw error;
+    }
   }, [api]);
 
   const createModel = useCallback(async (data: ModelPostRequest) => {
-    const response = await api.post(API_ENDPOINTS.MODEL, data);
-    setState(prevState => ({ ...prevState, models: response.data }));
-    return response.data;
+    try {
+      const response = await api.post(API_ENDPOINTS.MODEL, data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }, [api]);
 
   const selectModel = useCallback(async (model: Model) => {
@@ -338,13 +365,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateModel = useCallback(async (data: ModelPutRequest) => {
     const response = await api.put(API_ENDPOINTS.MODEL, data);
-    setState(prevState => ({ ...prevState, models: response.data }));
+    setState(prevState => ({ ...prevState, selectedModel: response.data }));
     return response.data;
   }, [api]);
 
   const deleteModel = useCallback(async (data: ModelDeleteRequest) => {
     const response = await api.delete(API_ENDPOINTS.MODEL, data);
-    setState(prevState => ({ ...prevState, models: response.data }));
     return response.data;
   }, [api]);
 
@@ -356,7 +382,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const uploadPhoto = useCallback(async (data: PhotoPostRequest) => {
     const response = await api.post(API_ENDPOINTS.PHOTO, data);
-    setState(prevState => ({ ...prevState, photos: response.data }));
     return response.data;
   }, [api]);
 
@@ -366,13 +391,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updatePhoto = useCallback(async (data: PhotoPutRequest) => {
     const response = await api.put(API_ENDPOINTS.PHOTO, data);
-    setState(prevState => ({ ...prevState, photos: response.data }));
     return response.data;
   }, [api]);
 
   const deletePhoto = useCallback(async (data: PhotoDeleteRequest) => {
     const response = await api.delete(API_ENDPOINTS.PHOTO, data);
-    setState(prevState => ({ ...prevState, photos: response.data }));
     return response.data;
   }, [api]);
 
@@ -390,14 +413,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createTraining = useCallback(async (data: TrainingPostRequest) => {
     const response = await api.post(API_ENDPOINTS.TRAINING, data);
-    setState(prevState => ({ ...prevState, trainings: response.data }));
     return response.data;
   }, [api]);
 
   const createFile = useCallback(async (data: FormData) => {
-    const response = await api.post(API_ENDPOINTS.FILE, data);
-    setState(prevState => ({ ...prevState, files: response.data }));
-    return response.data;
+    try {
+      const response = await api.post(API_ENDPOINTS.FILE, data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }, [api]);
 
   const getPhotoPrediction = useCallback(async (params: PhotoPredictionGetRequest) => {
@@ -408,13 +433,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createPhotoPrediction = useCallback(async (data: PhotoPredictionPostRequest) => {
     const response = await api.post(API_ENDPOINTS.PHOTO_PREDICTION, data);
-    setState(prevState => ({ ...prevState, predictions: response.data }));
     return response.data;
   }, [api]);
 
   const createVideoPrediction = useCallback(async (data: VideoPredictionPostRequest) => {
     const response = await api.post(API_ENDPOINTS.VIDEO_PREDICTION, data);
-    setState(prevState => ({ ...prevState, predictions: response.data }));
     return response.data;
   }, [api]);
 
@@ -431,24 +454,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [api]);
 
   useEffect(() => {
-    const token = localStorage.getItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
-    if (token) {
-      const expiresAt = localStorage.getItem(LOCAL_STORAGE_KEYS.EXPIRES_AT);
-      if (expiresAt) {
-        const timeUntilExpiry = parseInt(expiresAt) * 1000 - Date.now();
-        if (timeUntilExpiry > 7 * 24 * 60 * 60 * 1000) {
-          refreshToken();
-        }
+    // Initialize the app
+    const initializeApp = async () => {
+      const savedToken = localStorage.getItem(LOCAL_STORAGE_KEYS.ACCESS_TOKEN);
+      
+      if (savedToken) {
+        setState(prev => ({ ...prev, accessToken: savedToken }));
+        // Data fetching will be triggered by the useEffect that watches accessToken
+      } else {
+        // No token, but we're still initialized
+        setState(prev => ({ ...prev, isInitialized: true }));
       }
-      setState(prevState => ({ ...prevState, accessToken: token }));
-    }
+    };
     
-    setState(prevState => ({ ...prevState, isInitialized: true }));
+    initializeApp();
   }, []);
 
   useEffect(() => {
-    if (state.accessToken) fetchUser();
-  }, [state.accessToken, fetchUser]);
+    if (state.accessToken) {
+      Promise.all([
+        fetchUser(),
+        fetchModels(),
+        fetchPhotos(),
+        fetchVideos(),
+        fetchCredits(),
+        fetchSubscription()
+      ])
+      .then(() => {
+        setState(prev => ({ ...prev, isInitialized: true }));
+      })
+      .catch(error => {
+        console.error("Error during initialization:", error);
+        setState(prev => ({ ...prev, error, isInitialized: true }));
+      });
+    }
+  }, [state.accessToken, fetchUser, fetchModels, fetchPhotos, fetchVideos, fetchCredits, fetchSubscription]);
 
   useEffect(() => {
     const savedTab = localStorage.getItem(LOCAL_STORAGE_KEYS.ACTIVE_TAB);
@@ -459,39 +499,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const value: AppContextType = useMemo(() => ({
     ...state,
+  
     setActiveTab,
-
     login,
     logout,
-
     fetchUser,
     updateUser,
-    
     fetchModels,
     selectModel,
     createModel,
     updateModel,
     deleteModel,
-
     fetchPhotos,
     uploadPhoto,
     selectPhoto,
     updatePhoto,
     deletePhoto,
-
     fetchVideos,
-
     createTraining,
-
     createFile,
-
     createPhotoPrediction,
     createVideoPrediction,
-
     fetchCredits,
-
     fetchSubscription,
-  }), [state, login, logout, fetchUser, updateUser, fetchModels, selectModel, createModel, updateModel, deleteModel, fetchPhotos, uploadPhoto, selectPhoto, updatePhoto, deletePhoto, fetchVideos, fetchTrainings, createTraining, createFile, getPhotoPrediction, createPhotoPrediction, createVideoPrediction, fetchCredits, fetchSubscription, setActiveTab]);
+  }), [
+    state,
+    setActiveTab,
+    login,
+    logout,
+    fetchUser,
+    updateUser,
+    fetchModels,
+    selectModel,
+    createModel,
+    updateModel,
+    deleteModel,
+    fetchPhotos,
+    uploadPhoto,
+    selectPhoto,
+    updatePhoto,
+    deletePhoto,
+    fetchVideos,
+    createTraining,
+    createFile,
+    createPhotoPrediction,
+    createVideoPrediction,
+    fetchCredits,
+    fetchSubscription,
+  ]);
 
   if (!state.isInitialized) {
     return <Loading />;

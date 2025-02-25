@@ -40,8 +40,8 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Email Us</h3>
                   <p className="text-gray-400">General Inquiries:</p>
-                  <a href="mailto:contact.TakeAIPhotos@gmail.com" className="text-sky-500 hover:text-sky-400">
-                    contact.TakeAIPhotos@gmail.com
+                  <a href="mailto:contact.modelai@gmail.com" className="text-sky-500 hover:text-sky-400">
+                    contact.modelai@gmail.com
                   </a>
                 </div>
               </div>

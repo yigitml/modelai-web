@@ -24,7 +24,7 @@ export default function GoogleAuthButton({
         case "gradient":
           return `${baseClasses} ${sizeClasses} text-white bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 animate-flow`
         default:
-          return `${baseClasses} ${sizeClasses} bg-sky-500 hover:bg-sky-500`
+          return `${baseClasses} ${sizeClasses}`
       }
     }
   

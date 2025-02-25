@@ -4,7 +4,6 @@ import React from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/contexts/AppContext";
-import Loading from "@/components/Loading";
 
 type AuthenticatedLayoutProps = {
   children: React.ReactElement;
@@ -17,11 +16,12 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   useEffect(() => {
     const fetchUserAndRedirect = async () => {
       try {
-        const user = await fetchUser();
-        if (!user || !accessToken) {
+        if (!accessToken) {
           router.push("/unauthorized");
         return;
       }
+
+      const user = await fetchUser();
 
       if (!user.isOnboarded) {
         router.push("/onboarding-freemium");

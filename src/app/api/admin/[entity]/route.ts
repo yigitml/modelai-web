@@ -25,7 +25,6 @@ export const GET = withAdminRoute(async (request: NextRequest) => {
       return ApiResponse.error("Invalid entity", 400).toResponse();
     }
 
-    console.log(entity)
     const data = await (prisma as any)[entity!].findMany({
     });
 
@@ -39,9 +38,14 @@ export const GET = withAdminRoute(async (request: NextRequest) => {
 export const DELETE = withAdminRoute(async (request: NextRequest) => {
   try {
     const urlParts = request.url.split("/");
-    const entity = urlParts[urlParts.length - 2];
-    const id = urlParts[urlParts.length - 1];
+    const entity = urlParts[urlParts.length - 1];
 
+    const { id } = await request.json();
+
+    if (!id) {
+      return ApiResponse.error("ID is required", 400).toResponse();
+    }
+  
     if (!ALLOWED_ENTITIES.includes(entity)) {
       return ApiResponse.error("Invalid entity", 400).toResponse();
     }
@@ -61,18 +65,22 @@ export const DELETE = withAdminRoute(async (request: NextRequest) => {
 export const PUT = withAdminRoute(async (request: NextRequest) => {
   try {
     const urlParts = request.url.split("/");
-    const entity = urlParts[urlParts.length - 2];
-    const id = urlParts[urlParts.length - 1];
+    const entity = urlParts[urlParts.length - 1];
 
+    const body = await request.json();
+    const { id, ...rest } = body;
+
+    if (!id) {
+      return ApiResponse.error("ID is required", 400).toResponse();
+    }
+  
     if (!ALLOWED_ENTITIES.includes(entity)) {
       return ApiResponse.error("Invalid entity", 400).toResponse();
     }
-
-    const data = await request.json();
     
-    const protectedFields = ['id', 'createdAt', 'updatedAt', 'deletedAt'];
+    const protectedFields = ['createdAt', 'updatedAt', 'deletedAt'];
     const sanitizedData = Object.fromEntries(
-      Object.entries(data).filter(([key]) => !protectedFields.includes(key))
+      Object.entries(rest).filter(([key]) => !protectedFields.includes(key))
     );
 
     const updatedItem = await (prisma as any)[entity].update({

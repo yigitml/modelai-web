@@ -29,7 +29,7 @@ type EntityType = "user" | "model" | "photo" | "video" | "file" | "subscription"
 export default function AdminPage() {
   const [selectedEntity, setSelectedEntity] = useState<EntityType>("user");
   const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterProperty, setFilterProperty] = useState<string>("");
   const [filterValue, setFilterValue] = useState<string>("");
@@ -61,7 +61,6 @@ export default function AdminPage() {
       }
       
       const userData = await response.json();
-      console.log('User response:', userData.data);
       
       if (userData.data.email !== 'ch3xinthehood@gmail.com') {
         window.location.href = '/unauthorized';
@@ -121,7 +120,7 @@ export default function AdminPage() {
 
   const handleSave = async (id: string, updatedData: any) => {
     try {
-      const response = await fetch(`/api/admin/${selectedEntity}/${id}`, {
+      const response = await fetch(`/api/admin/${selectedEntity}`, {
         method: "PUT",
         headers: getDefaultHeaders(),
         credentials: "include",
@@ -279,10 +278,11 @@ export default function AdminPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`/api/admin/${selectedEntity}/${id}`, {
+      const response = await fetch(`/api/admin/${selectedEntity}`, {
         method: "DELETE",
         headers: getDefaultHeaders(),
-        credentials: "include"
+        credentials: "include",
+        body: JSON.stringify({ id })
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

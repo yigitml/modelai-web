@@ -13,6 +13,7 @@ export const GET = withProtectedRoute(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     const modelId = searchParams.get("modelId");
+    const isDeleted = searchParams.get("isDeleted");
     const authenticatedUserId = request.user!.id;
 
     if (id) {
@@ -26,9 +27,16 @@ export const GET = withProtectedRoute(async (request: NextRequest) => {
       return ApiResponse.error("Photo not found", 404).toResponse();
     }
 
+    if (isDeleted) {
+      const photos = await prisma.photo.findMany({
+        where: { userId: authenticatedUserId, deletedAt: { not: null } },
+      });
+      return ApiResponse.success(photos).toResponse();
+    }
+
     if (modelId) {
       const photos = await prisma.photo.findMany({
-        where: { modelId, userId: authenticatedUserId },
+        where: { modelId, userId: authenticatedUserId, deletedAt: null },
       });
       return ApiResponse.success(photos).toResponse();
     }
@@ -55,7 +63,8 @@ export const PUT = withProtectedRoute(async (request: NextRequest) => {
     const updatedPhoto = await prisma.photo.updateMany({
       where: { id: updateData.id, userId: authenticatedUserId },
       data: {
-        url: updateData.url
+        url: updateData.url,
+        deletedAt: updateData.isDeleted ? new Date() : null,
       },
     });
 
